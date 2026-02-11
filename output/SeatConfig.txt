@@ -1,0 +1,2 @@
+SEAT_SERVER=https://metamech-license-server.saviosyl.workers.dev
+CLIENT_TOKEN=thzeyxLoOvO7ufu0eC77okIPNj9r7omrut8QzujKbOs=

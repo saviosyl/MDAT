@@ -1,0 +1,2 @@
+﻿{"timestamp_utc":"2026-02-09T12:39:01Z","status":"START","action_slot":1,"action_name":"BOM Automation- Medtronic","exe_version":"0.0.0.0","license_id":"71615718d10d44b68fbf61f20ecbd277","machine_id":"CPS-IT51","duration_ms":0,"log_text":""}
+{"timestamp_utc":"2026-02-09T12:39:16Z","status":"END","action_slot":1,"action_name":"BOM Automation- Medtronic","exe_version":"0.0.0.0","license_id":"71615718d10d44b68fbf61f20ecbd277","machine_id":"CPS-IT51","duration_ms":14896,"log_text":"Completed (fallback mode)"}

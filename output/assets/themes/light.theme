@@ -1,0 +1,21 @@
+# ===============================
+# MDAT THEME - LIGHT
+# ===============================
+
+[Brand]
+AppName=MDAT
+Tagline=Mechanical Design Automation Tool
+
+[Colors]
+BG_MAIN=#F2F2F2
+BG_PANEL=#E6E6E6
+BG_CARD=#FFFFFF
+ACCENT_PRIMARY=#007ACC
+
+TEXT_PRIMARY=#000000
+TEXT_MUTED=#555555
+
+BTN_BG=#DDDDDD
+BTN_TEXT=#000000
+
+FOOTER_BG=#E6E6E6

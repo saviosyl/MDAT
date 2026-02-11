@@ -1,0 +1,27 @@
+; ==============================
+; MDAT THEME - DARK
+; ==============================
+
+[meta]
+name = MDAT Dark
+author = MetaMech
+version = 1.0
+
+[background]
+main   = #0B1E34
+panel  = #0F2A44
+card   = #162C45
+
+[accent]
+primary   = #00B4FF
+secondary = #4FC3F7
+teal      = #00E5D0
+
+[text]
+primary   = #EAF4FF
+secondary = #A9C7E8
+
+[status]
+success = #00E5D0
+warning = #FFC107
+error   = #F44336

@@ -1,0 +1,14 @@
+SYNC_URL=https://mdat-sync-api.saviosyl.workers.dev/api/v1/sync
+CLIENT_TOKEN=0FvjzfD/flEZ9RGan+gcxX+ISUKCSudKdInVht4FZ0Y
+
+[Macros]
+1 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\BOM Automation- Medtronic.swp|UPDATED_BOM_AUTOMATION_1|ExportBOM_SW2022
+2 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\BOM Automation- CPS AND Transitions.swp|BOM_AUTOMATION_1|main
+3 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\New folder\PDF AUTOMATION WITH MERGE .swp|Macro21|main
+4 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\STEP FILE AUTO .swp | BOTH_1 | Main 
+5 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\RENUMBER CPS.swp | RENUMBER_CPS1 | main
+6 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\TEMP CHANGE.swp
+7 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\CUSTOM PRP UPDATE.swp
+8 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\New folder\HOLE WIZARD.swp|Module1|main
+9 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\NONE.swp
+10 = X:\ENGINEERING DOCS\-MACROS\Advance - Testing Now\Codes\NONE.swp
