@@ -1,0 +1,704 @@
+Option Strict On
+Option Explicit On
+
+Imports System
+Imports System.IO
+Imports System.Drawing
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices   ' PHASE 3 ADDITION
+
+Public Class MainForm
+    Inherits Form
+
+    '========================================================
+    ' APP
+    '========================================================
+    Private Const APP_NAME As String = "MDAT – Mechanical Design Automation Tool"
+    Private Const CONFIG_FILE As String = "config.txt"
+
+    Private Const EXPIRY_WARNING_DAYS As Integer = 30
+    Private Const EXPIRY_CRITICAL_DAYS As Integer = 7
+
+    '========================================================
+    ' PHASE 1 – SELECTED ASSEMBLY (LOCKED BASELINE)
+    '========================================================
+    Private selectedAssemblyPath As String = String.Empty
+
+    '========================================================
+    ' PHASE 3 – SOLIDWORKS APPLICATION OBJECT (ADDITIVE)
+    '========================================================
+    Private swApp As Object = Nothing
+
+    '========================================================
+    ' BUTTON SELECTION STATE
+    '========================================================
+    Private selectedButton As Button = Nothing
+
+    '========================================================
+    ' HEADER CONTROLS
+    '========================================================
+    Private pnlHeader As Panel
+    Private pnlHeaderLine As Panel
+    Private picLogo As PictureBox
+    Private lblTitle As Label
+    Private lblSubtitle As Label
+    Private btnTheme As Button
+    Private btnLicense As Button
+    Private lblLicence As Label
+    Private lblValidity As Label
+
+    '========================================================
+    ' CENTRE
+    '========================================================
+    Private cmbSW As ComboBox
+    Private btnSelectFile As Button
+    Private txtLog As TextBox
+
+    '========================================================
+    ' FOOTER
+    '========================================================
+    Private lblFooter As Label
+
+    '========================================================
+    ' SIDE PANELS
+    '========================================================
+    Private pnlDesign As Panel
+    Private pnlEngineering As Panel
+    Private pnlDesignContent As Panel
+    Private pnlEngineeringContent As Panel
+
+    '========================================================
+    ' MACROS
+    '========================================================
+    Private macroDisplayMap As New Dictionary(Of Integer, String)
+    Private macroExecMap As New Dictionary(Of Integer, String)
+
+    '========================================================
+    ' LICENSE STATE
+    '========================================================
+    Private activeLicense As LicenseInfo = Nothing
+    Private currentTier As Integer = 0
+    Private licenseValid As Boolean = False
+
+    '========================================================
+    ' THEME
+    '========================================================
+    Private Enum ThemeMode
+        PANEL_LIGHT
+        PANEL_DARK
+        PANEL_MM
+        PANEL_CUSTOM
+    End Enum
+
+    Private currentTheme As ThemeMode = ThemeMode.PANEL_LIGHT
+    Private customAccent As Color = Color.FromArgb(115, 60, 190)
+
+    Private BG_LIGHT As Color = Color.FromArgb(245, 246, 248)
+    Private PANEL_LIGHT As Color = Color.FromArgb(230, 232, 235)
+
+    Private BG_DARK As Color = Color.FromArgb(26, 30, 36)
+    Private PANEL_DARK As Color = Color.FromArgb(38, 42, 50)
+
+    Private BG_MM As Color = Color.FromArgb(242, 240, 248)
+    Private PANEL_MM As Color = Color.FromArgb(225, 220, 240)
+
+    '========================================================
+    ' INIT
+    '========================================================
+    Public Sub New()
+
+        Try
+            Me.Text = APP_NAME
+            Me.StartPosition = FormStartPosition.CenterScreen
+            Me.Font = New Font("Segoe UI", 10)
+            Me.FormBorderStyle = FormBorderStyle.Sizable
+            Me.MinimumSize = New Size(1000, 600)
+
+            Dim wa As Rectangle = Screen.PrimaryScreen.WorkingArea
+            Me.Size = New Size(CInt(wa.Width * 0.9), CInt(wa.Height * 0.85))
+
+            BuildHeader()
+            BuildCentre()
+            BuildSidePanels()
+            BuildFooter()
+
+            LoadMacrosFromConfig()
+
+            ' ---- LICENSE LOAD ----
+            Try
+                activeLicense = Licensing.GetLicenseInfo()
+                ResolveTierFromLicense(activeLicense)
+            Catch
+                licenseValid = False
+            End Try
+
+            BuildButtons()
+            ApplyTierLocks()
+            ApplyTheme()
+
+            Log("Application ready.")
+
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString(), "MDAT Startup Failure", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Application.Exit()
+        End Try
+
+    End Sub
+
+    '========================================================
+    ' FORCE FIRST LAYOUT (CRITICAL FIX)
+    '========================================================
+    Protected Overrides Sub OnShown(e As EventArgs)
+        MyBase.OnShown(e)
+        HeaderResize(Nothing, EventArgs.Empty)
+    End Sub
+
+    '========================================================
+    ' HEADER
+    '========================================================
+    Private Sub BuildHeader()
+
+        pnlHeader = New Panel() With {
+            .Dock = DockStyle.Top,
+            .Height = 90,
+            .BackColor = PANEL_LIGHT
+        }
+        Me.Controls.Add(pnlHeader)
+
+        picLogo = New PictureBox() With {
+            .Size = New Size(160, 70),
+            .Location = New Point(20, 10),
+            .SizeMode = PictureBoxSizeMode.Zoom,
+            .BackColor = Color.Transparent
+        }
+        pnlHeader.Controls.Add(picLogo)
+
+        Dim logoPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets\logo\logo.png")
+        If File.Exists(logoPath) Then
+            Using fs As New FileStream(logoPath, FileMode.Open, FileAccess.Read)
+                Using bmp As New Bitmap(fs)
+                    picLogo.Image = New Bitmap(bmp)
+                End Using
+            End Using
+        End If
+
+        lblTitle = New Label() With {
+            .Text = "MetaMech Mechanical Design Automation",
+            .Font = New Font("Segoe UI", 18, FontStyle.Bold),
+            .AutoSize = False
+        }
+        pnlHeader.Controls.Add(lblTitle)
+
+        lblSubtitle = New Label() With {
+            .Text = "Designed by MetaMech Solutions",
+            .Font = New Font("Segoe UI", 9, FontStyle.Italic),
+            .AutoSize = False
+        }
+        pnlHeader.Controls.Add(lblSubtitle)
+
+        btnTheme = New Button() With {.Text = "THEME ▾", .Size = New Size(90, 28)}
+        AddHandler btnTheme.Click, AddressOf ShowThemeMenu
+        pnlHeader.Controls.Add(btnTheme)
+
+        btnLicense = New Button() With {.Text = "LICENSE ▾", .Size = New Size(90, 28)}
+        AddHandler btnLicense.Click, AddressOf ShowLicensePopup
+        pnlHeader.Controls.Add(btnLicense)
+
+        lblLicence = New Label() With {.Font = New Font("Segoe UI", 9, FontStyle.Bold), .AutoSize = True}
+        pnlHeader.Controls.Add(lblLicence)
+
+        lblValidity = New Label() With {.Font = New Font("Segoe UI", 8), .AutoSize = True}
+        pnlHeader.Controls.Add(lblValidity)
+
+        AddHandler pnlHeader.Resize, AddressOf HeaderResize
+
+        pnlHeaderLine = New Panel() With {
+            .Dock = DockStyle.Top,
+            .Height = 2,
+            .BackColor = customAccent
+        }
+        Me.Controls.Add(pnlHeaderLine)
+
+    End Sub
+
+    '========================================================
+    ' HEADER RESIZE (FINAL)
+    '========================================================
+    Private Sub HeaderResize(sender As Object, e As EventArgs)
+
+        If pnlHeader Is Nothing Then Return
+
+        btnTheme.Location = New Point(pnlHeader.Width - 110, 15)
+        btnLicense.Location = New Point(pnlHeader.Width - 210, 15)
+
+        lblLicence.Location = New Point(pnlHeader.Width - 210, 48)
+        lblValidity.Location = New Point(pnlHeader.Width - 210, 64)
+
+        Dim titleLeft As Integer = picLogo.Right + 15
+        Dim maxTitleWidth As Integer = btnLicense.Left - titleLeft - 10
+
+        lblTitle.Location = New Point(titleLeft, 20)
+        lblTitle.Size = New Size(Math.Max(200, maxTitleWidth), 30)
+
+        lblSubtitle.Location = New Point(titleLeft, lblTitle.Bottom + 2)
+        lblSubtitle.Size = New Size(Math.Max(200, maxTitleWidth), 18)
+
+    End Sub
+
+    '========================================================
+    ' CENTRE
+    '========================================================
+    Private Sub BuildCentre()
+
+        cmbSW = New ComboBox() With {
+            .DropDownStyle = ComboBoxStyle.DropDownList,
+            .Location = New Point(300, 110)
+        }
+        cmbSW.Items.AddRange(New String() {"2022", "2023", "2024", "2025"})
+        cmbSW.SelectedIndex = 0
+        Me.Controls.Add(cmbSW)
+
+        btnSelectFile = New Button() With {
+            .Text = "Select Assembly (.SLDASM)",
+            .Size = New Size(260, 35),
+            .Location = New Point(450, 105)
+        }
+        AddHandler btnSelectFile.Click, AddressOf SelectAssembly
+        Me.Controls.Add(btnSelectFile)
+
+        txtLog = New TextBox() With {
+            .Multiline = True,
+            .ReadOnly = True,
+            .ScrollBars = ScrollBars.Vertical,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
+            .Location = New Point(300, 155),
+            .Size = New Size(Me.ClientSize.Width - 600, Me.ClientSize.Height - 240)
+        }
+        Me.Controls.Add(txtLog)
+
+    End Sub
+
+    '========================================================
+    ' PHASE 1 – ASSEMBLY SELECTION
+    '========================================================
+    Private Sub SelectAssembly(sender As Object, e As EventArgs)
+
+        Using ofd As New OpenFileDialog()
+            ofd.Title = "Select Top-Level Assembly"
+            ofd.Filter = "SolidWorks Assembly (*.sldasm)|*.sldasm"
+            ofd.Multiselect = False
+
+            If ofd.ShowDialog() <> DialogResult.OK Then Exit Sub
+
+            selectedAssemblyPath = ofd.FileName
+            Log("Assembly selected:")
+            Log(selectedAssemblyPath)
+
+        End Using
+
+    End Sub
+
+    '========================================================
+    ' PHASE 2 – SOFT GATE (LOGIC ONLY)
+    '========================================================
+    Private Function IsAssemblySelected() As Boolean
+        Return Not String.IsNullOrEmpty(selectedAssemblyPath)
+    End Function
+
+    '========================================================
+    ' PHASE 3 – SOLIDWORKS BOOTSTRAP (CPS STYLE, STRICT SAFE)
+    '========================================================
+    Private Function EnsureSolidWorksRunning() As Boolean
+
+        ' 1) Attach to running SolidWorks if available
+        If swApp IsNot Nothing Then
+            Return True
+        End If
+
+        Try
+            swApp = Marshal.GetActiveObject("SldWorks.Application")
+            If swApp IsNot Nothing Then
+                Log("Attached to running SolidWorks instance.")
+                Try
+                    CallByName(swApp, "Visible", CallType.Let, True)
+                Catch
+                    ' still considered attached; visibility failure handled below
+                End Try
+                Return True
+            End If
+        Catch
+            swApp = Nothing
+        End Try
+
+        ' 2) Start SolidWorks if not running
+        Try
+            Dim t As Type = Type.GetTypeFromProgID("SldWorks.Application")
+            If t Is Nothing Then
+                Log("Failed to locate SolidWorks ProgID (SldWorks.Application).")
+                swApp = Nothing
+                Return False
+            End If
+
+            swApp = Activator.CreateInstance(t)
+            If swApp Is Nothing Then
+                Log("Failed to start SolidWorks (instance is Nothing).")
+                Return False
+            End If
+
+            Log("SolidWorks started successfully.")
+
+        Catch ex As Exception
+            Log("Failed to start SolidWorks: " & ex.Message)
+            swApp = Nothing
+            Return False
+        End Try
+
+        ' 3) Make SolidWorks visible (Option Strict ON safe)
+        Try
+            CallByName(swApp, "Visible", CallType.Let, True)
+        Catch ex As Exception
+            Log("Failed to make SolidWorks visible: " & ex.Message)
+            Return False
+        End Try
+
+        Return True
+
+    End Function
+
+    '========================================================
+    ' SIDE PANELS
+    '========================================================
+    Private Sub BuildSidePanels()
+
+        pnlDesign = New Panel() With {
+            .Width = 250,
+            .Location = New Point(20, 155),
+            .Height = Me.ClientSize.Height - 240,
+            .BorderStyle = BorderStyle.FixedSingle
+        }
+        Me.Controls.Add(pnlDesign)
+
+        pnlDesign.Controls.Add(New Label() With {
+            .Text = "DESIGN TOOLS",
+            .Dock = DockStyle.Top,
+            .Height = 32,
+            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleCenter
+        })
+
+        pnlDesignContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlDesign.Controls.Add(pnlDesignContent)
+
+        pnlEngineering = New Panel() With {
+            .Width = 250,
+            .Location = New Point(Me.ClientSize.Width - 270, 155),
+            .Height = Me.ClientSize.Height - 240,
+            .BorderStyle = BorderStyle.FixedSingle,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Right
+        }
+        Me.Controls.Add(pnlEngineering)
+
+        pnlEngineering.Controls.Add(New Label() With {
+            .Text = "ENGINEERING TOOLS",
+            .Dock = DockStyle.Top,
+            .Height = 32,
+            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleCenter
+        })
+
+        pnlEngineeringContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlEngineering.Controls.Add(pnlEngineeringContent)
+
+    End Sub
+
+    '========================================================
+    ' FOOTER
+    '========================================================
+    Private Sub BuildFooter()
+
+        lblFooter = New Label() With {
+            .Text = "Registered Name: John Byrne Conveyors & Packaging Services Ltd. T/A CPS",
+            .Font = New Font("Segoe UI", 8, FontStyle.Italic),
+            .AutoSize = True,
+            .Anchor = AnchorStyles.Bottom Or AnchorStyles.Left,
+            .Location = New Point(300, Me.ClientSize.Height - 28)
+        }
+        Me.Controls.Add(lblFooter)
+
+    End Sub
+
+    '========================================================
+    ' BUTTON STYLE – LOCKED
+    '========================================================
+    Private Sub StyleDisabledButton(btn As Button)
+
+        btn.Enabled = False
+        btn.BackColor = Color.FromArgb(230, 230, 230)
+        btn.ForeColor = Color.FromArgb(140, 140, 140)
+        btn.FlatStyle = FlatStyle.Flat
+        btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200)
+        btn.FlatAppearance.BorderSize = 1
+        btn.Cursor = Cursors.Default
+
+        If Not btn.Text.StartsWith("🔒") Then
+            btn.Text = "🔒 " & btn.Text
+        End If
+
+        Dim tip As New ToolTip()
+        tip.SetToolTip(btn, "Locked — upgrade license to use this tool")
+
+    End Sub
+
+    '========================================================
+    ' BUTTON BUILDER
+    '========================================================
+    Private Sub AddButton(parent As Panel, text As String, tag As Integer, y As Integer, h As EventHandler)
+
+        Dim b As New Button() With {
+            .Text = text,
+            .Tag = tag,
+            .Width = parent.Width - 20,
+            .Height = 34,
+            .Location = New Point(10, y),
+            .FlatStyle = FlatStyle.Flat,
+            .BackColor = Color.White,
+            .ForeColor = Color.Black,
+            .TextAlign = ContentAlignment.MiddleLeft,
+            .Padding = New Padding(12, 0, 0, 0),
+            .Cursor = Cursors.Hand
+        }
+
+        b.FlatAppearance.BorderSize = 1
+        b.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180)
+
+        AddHandler b.MouseEnter, Sub()
+                                     If b.Enabled AndAlso b IsNot selectedButton Then
+                                         b.BackColor = Color.FromArgb(240, 240, 240)
+                                     End If
+                                 End Sub
+
+        AddHandler b.MouseLeave, Sub()
+                                     If b IsNot selectedButton Then
+                                         b.BackColor = Color.White
+                                     End If
+                                 End Sub
+
+        AddHandler b.Click, Sub()
+                                If Not b.Enabled Then Return
+                                If selectedButton IsNot Nothing Then selectedButton.BackColor = Color.White
+                                selectedButton = b
+                                b.BackColor = Color.FromArgb(220, 225, 235)
+                            End Sub
+
+        AddHandler b.Click, h
+        parent.Controls.Add(b)
+
+    End Sub
+
+    '========================================================
+    ' BUILD BUTTONS
+    '========================================================
+    Private Sub BuildButtons()
+
+        pnlDesignContent.Controls.Clear()
+        pnlEngineeringContent.Controls.Clear()
+
+        Dim y As Integer = 60
+        For i As Integer = 1 To 10
+            If macroDisplayMap.ContainsKey(i) Then
+                AddButton(pnlDesignContent, macroDisplayMap(i), i, y, AddressOf RunDesignTool)
+                y += 38
+            End If
+        Next
+
+        y = 60
+        AddButton(pnlEngineeringContent, "Conveyor Calculator", 11, y, AddressOf RunEngineeringTool)
+        y += 38
+        AddButton(pnlEngineeringContent, "FlexLink Configurator", 12, y, AddressOf RunEngineeringTool)
+
+    End Sub
+
+    '========================================================
+    ' MACRO LOADER
+    '========================================================
+    Private Sub LoadMacrosFromConfig()
+
+        macroDisplayMap.Clear()
+        macroExecMap.Clear()
+
+        Dim cfgPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CONFIG_FILE)
+        If Not File.Exists(cfgPath) Then Return
+
+        For Each rawLine As String In File.ReadAllLines(cfgPath)
+
+            Dim line As String = rawLine.Trim()
+            If line = "" OrElse line.StartsWith("[") OrElse Not line.Contains("=") Then Continue For
+
+            Dim parts() As String = line.Split({"="c}, 2)
+            Dim slot As Integer
+            If Not Integer.TryParse(parts(0).Trim(), slot) Then Continue For
+
+            Dim execRaw As String = parts(1).Trim()
+            Dim swpPath As String = execRaw
+            If swpPath.Contains("|") Then swpPath = swpPath.Split("|"c)(0).Trim()
+            If Not swpPath.ToLower().EndsWith(".swp") Then Continue For
+
+            macroExecMap(slot) = execRaw
+            macroDisplayMap(slot) = Path.GetFileNameWithoutExtension(swpPath)
+
+        Next
+
+    End Sub
+
+    '========================================================
+    ' TIER LOCKS – FINAL FIX
+    '========================================================
+    Private Sub ApplyTierLocks()
+
+        For Each c As Control In pnlDesignContent.Controls
+            Dim b = TryCast(c, Button)
+            If b Is Nothing Then Continue For
+            If Not licenseValid OrElse Not TierLocks.CanRunDesignTool(CInt(b.Tag), currentTier) Then
+                StyleDisabledButton(b)
+            End If
+        Next
+
+        For Each c As Control In pnlEngineeringContent.Controls
+            Dim b = TryCast(c, Button)
+            If b Is Nothing Then Continue For
+            If Not licenseValid OrElse Not TierLocks.CanRunEngineeringTool(CInt(b.Tag), currentTier) Then
+                StyleDisabledButton(b)
+            End If
+        Next
+
+    End Sub
+
+    '========================================================
+    ' ACTIONS
+    '========================================================
+    Private Sub RunDesignTool(sender As Object, e As EventArgs)
+
+        If Not IsAssemblySelected() Then
+            Log("Please select a Top-Level Assembly before running design tools.")
+            Return
+        End If
+
+        ' PHASE 3 ADDITION
+        If Not EnsureSolidWorksRunning() Then
+            Log("SolidWorks not available. Please start SolidWorks and try again.")
+            Return
+        End If
+
+        Log("Design tool selected.")
+    End Sub
+
+    Private Sub RunEngineeringTool(sender As Object, e As EventArgs)
+
+        If Not IsAssemblySelected() Then
+            Log("Please select a Top-Level Assembly before running engineering tools.")
+            Return
+        End If
+
+        ' PHASE 3 ADDITION
+        If Not EnsureSolidWorksRunning() Then
+            Log("SolidWorks not available. Please start SolidWorks and try again.")
+            Return
+        End If
+
+        Log("Engineering tool selected.")
+    End Sub
+
+    '========================================================
+    ' LICENSE
+    '========================================================
+    Private Sub ResolveTierFromLicense(lic As LicenseInfo)
+
+        licenseValid = False
+
+        If lic Is Nothing OrElse Not lic.IsValid Then
+            lblLicence.Text = "LICENCE: INVALID"
+            lblLicence.ForeColor = Color.Red
+            Return
+        End If
+
+        licenseValid = True
+        currentTier = lic.Tier
+
+        Dim daysLeft As Integer = CInt((lic.ExpiryUtc - DateTime.UtcNow).TotalDays)
+
+        lblLicence.Text = "LICENCE: ACTIVE"
+
+        If daysLeft <= EXPIRY_CRITICAL_DAYS Then
+            lblValidity.Text = "⛔ EXPIRING IN " & daysLeft & " DAYS"
+            lblValidity.ForeColor = Color.Red
+        ElseIf daysLeft <= EXPIRY_WARNING_DAYS Then
+            lblValidity.Text = "⚠ EXPIRING IN " & daysLeft & " DAYS"
+            lblValidity.ForeColor = Color.DarkOrange
+        Else
+            lblValidity.Text = "VALID (" & daysLeft & " days left)"
+            lblValidity.ForeColor = Color.Green
+        End If
+
+    End Sub
+
+    Private Sub ShowLicensePopup(sender As Object, e As EventArgs)
+        MessageBox.Show(lblValidity.Text, "License Status", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    '========================================================
+    ' THEME
+    '========================================================
+    Private Sub ShowThemeMenu(sender As Object, e As EventArgs)
+
+        Dim m As New ContextMenuStrip()
+        m.Items.Add("Light", Nothing, Sub() SetTheme(ThemeMode.PANEL_LIGHT))
+        m.Items.Add("Dark", Nothing, Sub() SetTheme(ThemeMode.PANEL_DARK))
+        m.Items.Add("MetaMech", Nothing, Sub() SetTheme(ThemeMode.PANEL_MM))
+        m.Items.Add("Custom…", Nothing, Sub() PickCustomTheme())
+        m.Show(btnTheme, New Point(0, btnTheme.Height))
+
+    End Sub
+
+    Private Sub PickCustomTheme()
+        Using d As New ColorDialog()
+            If d.ShowDialog() = DialogResult.OK Then
+                customAccent = d.Color
+                SetTheme(ThemeMode.PANEL_CUSTOM)
+            End If
+        End Using
+    End Sub
+
+    Private Sub SetTheme(m As ThemeMode)
+        currentTheme = m
+        ApplyTheme()
+    End Sub
+
+    Private Sub ApplyTheme()
+
+        Select Case currentTheme
+            Case ThemeMode.PANEL_LIGHT
+                Me.BackColor = BG_LIGHT
+                pnlHeader.BackColor = PANEL_LIGHT
+
+            Case ThemeMode.PANEL_DARK
+                Me.BackColor = BG_DARK
+                pnlHeader.BackColor = PANEL_DARK
+
+            Case ThemeMode.PANEL_MM
+                Me.BackColor = BG_MM
+                pnlHeader.BackColor = PANEL_MM
+        End Select
+
+        pnlHeaderLine.BackColor = customAccent
+
+    End Sub
+
+    '========================================================
+    ' LOG
+    '========================================================
+    Private Sub Log(msg As String)
+        txtLog.AppendText(DateTime.Now.ToString("HH:mm:ss") & "  " & msg & vbCrLf)
+    End Sub
+
+End Class

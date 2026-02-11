@@ -1,0 +1,1547 @@
+Option Strict On
+Option Explicit On
+
+Imports System
+Imports System.IO
+Imports System.Drawing
+Imports System.Windows.Forms
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices
+Imports System.Reflection
+Imports System.Globalization
+
+Public Class MainForm
+    Inherits Form
+
+    '========================================================
+    ' APP
+    '========================================================
+    Private Const APP_NAME As String = "MDAT – Mechanical Design Automation Tool"
+    Private Const CONFIG_FILE As String = "config.txt"
+
+    Private Const EXPIRY_WARNING_DAYS As Integer = 30
+    Private Const EXPIRY_CRITICAL_DAYS As Integer = 7
+
+    ' Persisted timing stats (per slot)
+    Private Const ACTION_TIMES_FILE As String = "action_times.txt"
+
+    '========================================================
+    ' PHASE 1B – TELEMETRY CONFIG (ADDITIVE)
+    '========================================================
+    Private syncUrl As String = ""
+    Private telemetryToken As String = ""
+
+    '========================================================
+    ' PHASE 1 – SELECTED ASSEMBLY (LOCKED BASELINE)
+    '========================================================
+    Private selectedAssemblyPath As String = String.Empty
+
+    '========================================================
+    ' PHASE 3 – SOLIDWORKS APPLICATION OBJECT (ADDITIVE)
+    '========================================================
+    Private swApp As Object = Nothing
+
+    '========================================================
+    ' PHASE 4 – ACTIVE MODEL DOCUMENT (ADDITIVE)
+    '========================================================
+    Private swModel As Object = Nothing
+
+    '========================================================
+    ' BUTTON SELECTION STATE
+    '========================================================
+    Private selectedButton As Button = Nothing
+
+    '========================================================
+    ' HEADER CONTROLS
+    '========================================================
+    Private pnlHeader As Panel
+    Private pnlHeaderLine As Panel
+    Private picLogo As PictureBox
+    Private lblTitle As Label
+    Private lblSubtitle As Label
+    Private btnTheme As Button
+    Private btnLicense As Button
+    Private lblLicence As Label
+    Private lblValidity As Label
+
+    '========================================================
+    ' CENTRE
+    '========================================================
+    Private cmbSW As ComboBox
+    Private btnSelectFile As Button
+    Private txtLog As TextBox
+
+    '========================================================
+    ' FOOTER
+    '========================================================
+    Private lblFooter As Label
+
+    '========================================================
+    ' SIDE PANELS
+    '========================================================
+    Private pnlDesign As Panel
+    Private pnlEngineering As Panel
+    Private pnlDesignContent As Panel
+    Private pnlEngineeringContent As Panel
+
+    '========================================================
+    ' MACROS
+    '========================================================
+    Private macroDisplayMap As New Dictionary(Of Integer, String)()
+    Private macroExecMap As New Dictionary(Of Integer, String)()
+
+    '========================================================
+    ' LICENSE STATE
+    '========================================================
+    Private activeLicense As LicenseInfo = Nothing
+    Private currentTier As Integer = 0
+    Private licenseValid As Boolean = False
+
+    '========================================================
+    ' THEME
+    '========================================================
+    Private Enum ThemeMode
+        PANEL_LIGHT
+        PANEL_DARK
+        PANEL_MM
+        PANEL_CUSTOM
+    End Enum
+
+    Private currentTheme As ThemeMode = ThemeMode.PANEL_LIGHT
+    Private customAccent As Color = Color.FromArgb(115, 60, 190)
+
+    Private BG_LIGHT As Color = Color.FromArgb(245, 246, 248)
+    Private PANEL_LIGHT As Color = Color.FromArgb(230, 232, 235)
+
+    Private BG_DARK As Color = Color.FromArgb(26, 30, 36)
+    Private PANEL_DARK As Color = Color.FromArgb(38, 42, 50)
+
+    Private BG_MM As Color = Color.FromArgb(242, 240, 248)
+    Private PANEL_MM As Color = Color.FromArgb(225, 220, 240)
+
+    ' IMPORTANT: global theme darkness flag (fixes your isDark compile error)
+    Private currentThemeIsDark As Boolean = False
+
+    '========================================================
+    ' ACTION TIMING (Phase 5 enhancement)
+    '========================================================
+    Private Class ActionStat
+        Public Count As Integer
+        Public AvgSeconds As Double
+    End Class
+
+    Private actionStart As New Dictionary(Of Integer, DateTime)()
+    Private actionStats As New Dictionary(Of Integer, ActionStat)()
+
+    '========================================================
+    ' INIT
+    '========================================================
+    Public Sub New()
+        Try
+            Me.Text = APP_NAME
+            Me.StartPosition = FormStartPosition.CenterScreen
+            Me.Font = New Font("Segoe UI", 10)
+            Me.FormBorderStyle = FormBorderStyle.Sizable
+            Me.MinimumSize = New Size(1000, 600)
+
+            Dim wa As Rectangle = Screen.PrimaryScreen.WorkingArea
+            Me.Size = New Size(CInt(wa.Width * 0.9), CInt(wa.Height * 0.85))
+
+            BuildHeader()
+            BuildCentre()
+            BuildSidePanels()
+            BuildFooter()
+
+            LoadMacrosFromConfig()
+
+            ' Load timing stats (optional)
+            LoadActionStats()
+
+            ' ---- LICENSE LOAD ----
+            Try
+                activeLicense = Licensing.GetLicenseInfo()
+                ResolveTierFromLicense(activeLicense)
+            Catch
+                licenseValid = False
+            End Try
+
+            ' ---- SEAT + TELEMETRY CONFIG (NO UI CHANGE) ----
+            ' Reads optional keys from config.txt:
+            '   SEAT_SERVER=https://...
+            '   CLIENT_TOKEN=...
+            '   SYNC_URL=https://.../api/v1/sync
+            Try
+                LoadSeatConfigFromConfig()
+            Catch
+                ' do not block startup
+            End Try
+
+            ' ---- TELEMETRY FLUSH (NO UI CHANGE) ----
+            ' Best-effort: if offline, queue remains and will flush later.
+            Try
+                If syncUrl <> "" AndAlso telemetryToken <> "" Then
+                    TelemetryQueue.Flush(syncUrl, telemetryToken, 8000)
+                End If
+            Catch
+            End Try
+
+            BuildButtons()
+            ApplyTierLocks()
+            ApplyTheme() ' also updates currentThemeIsDark + license label colors
+
+            LogA("✅", "Application ready.")
+
+        Catch ex As Exception
+            MessageBox.Show(ex.ToString(), "MDAT Startup Failure", MessageBoxButtons.OK, MessageBoxIcon.[Error])
+            Application.[Exit]()
+        End Try
+    End Sub
+
+    '========================================================
+    ' FORCE FIRST LAYOUT (CRITICAL FIX)
+    '========================================================
+    Protected Overrides Sub OnShown(e As EventArgs)
+        MyBase.OnShown(e)
+        HeaderResize(Nothing, EventArgs.Empty)
+    End Sub
+
+    '========================================================
+    ' HEADER
+    '========================================================
+    Private Sub BuildHeader()
+
+        pnlHeader = New Panel() With {
+            .Dock = DockStyle.Top,
+            .Height = 90,
+            .BackColor = PANEL_LIGHT
+        }
+        Me.Controls.Add(pnlHeader)
+
+        picLogo = New PictureBox() With {
+            .Size = New Size(160, 70),
+            .Location = New Point(20, 10),
+            .SizeMode = PictureBoxSizeMode.Zoom,
+            .BackColor = Color.Transparent
+        }
+        pnlHeader.Controls.Add(picLogo)
+
+        Dim logoPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets\logo\logo.png")
+        If File.Exists(logoPath) Then
+            Using fs As New FileStream(logoPath, FileMode.Open, FileAccess.Read)
+                Using bmp As New Bitmap(fs)
+                    picLogo.Image = New Bitmap(bmp)
+                End Using
+            End Using
+        End If
+
+        lblTitle = New Label() With {
+            .Text = "MetaMech Mechanical Design Automation",
+            .Font = New Font("Segoe UI", 18, FontStyle.Bold),
+            .AutoSize = False
+        }
+        pnlHeader.Controls.Add(lblTitle)
+
+        lblSubtitle = New Label() With {
+            .Text = "Designed by MetaMech Solutions",
+            .Font = New Font("Segoe UI", 9, FontStyle.Italic),
+            .AutoSize = False
+        }
+        pnlHeader.Controls.Add(lblSubtitle)
+
+        btnTheme = New Button() With {.Text = "THEME ▾", .Size = New Size(90, 28)}
+        AddHandler btnTheme.Click, AddressOf ShowThemeMenu
+        pnlHeader.Controls.Add(btnTheme)
+
+        btnLicense = New Button() With {.Text = "LICENSE ▾", .Size = New Size(90, 28)}
+        AddHandler btnLicense.Click, AddressOf ShowLicensePopup
+        pnlHeader.Controls.Add(btnLicense)
+
+        lblLicence = New Label() With {.Font = New Font("Segoe UI", 9, FontStyle.Bold), .AutoSize = True}
+        pnlHeader.Controls.Add(lblLicence)
+
+        lblValidity = New Label() With {.Font = New Font("Segoe UI", 8), .AutoSize = True}
+        pnlHeader.Controls.Add(lblValidity)
+
+        AddHandler pnlHeader.Resize, AddressOf HeaderResize
+
+        pnlHeaderLine = New Panel() With {
+            .Dock = DockStyle.Top,
+            .Height = 2,
+            .BackColor = customAccent
+        }
+        Me.Controls.Add(pnlHeaderLine)
+
+    End Sub
+
+    '========================================================
+    ' HEADER RESIZE (FINAL)
+    '========================================================
+    Private Sub HeaderResize(sender As Object, e As EventArgs)
+
+        If pnlHeader Is Nothing Then Return
+
+        btnTheme.Location = New Point(pnlHeader.Width - 110, 15)
+        btnLicense.Location = New Point(pnlHeader.Width - 210, 15)
+
+        lblLicence.Location = New Point(pnlHeader.Width - 210, 48)
+        lblValidity.Location = New Point(pnlHeader.Width - 210, 64)
+
+        Dim titleLeft As Integer = picLogo.Right + 15
+        Dim maxTitleWidth As Integer = btnLicense.Left - titleLeft - 10
+
+        lblTitle.Location = New Point(titleLeft, 20)
+        lblTitle.Size = New Size(Math.Max(200, maxTitleWidth), 30)
+
+        lblSubtitle.Location = New Point(titleLeft, lblTitle.Bottom + 2)
+        lblSubtitle.Size = New Size(Math.Max(200, maxTitleWidth), 18)
+
+    End Sub
+
+    '========================================================
+    ' CENTRE
+    '========================================================
+    Private Sub BuildCentre()
+
+        cmbSW = New ComboBox() With {
+            .DropDownStyle = ComboBoxStyle.DropDownList,
+            .Location = New Point(300, 110)
+        }
+        cmbSW.Items.AddRange(New String() {"2022", "2023", "2024", "2025"})
+        cmbSW.SelectedIndex = 0
+        Me.Controls.Add(cmbSW)
+
+        btnSelectFile = New Button() With {
+            .Text = "Select Assembly (.SLDASM)",
+            .Size = New Size(260, 35),
+            .Location = New Point(450, 105)
+        }
+        AddHandler btnSelectFile.Click, AddressOf SelectAssembly
+        Me.Controls.Add(btnSelectFile)
+
+        txtLog = New TextBox() With {
+            .Multiline = True,
+            .ReadOnly = True,
+            .ScrollBars = ScrollBars.Vertical,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
+            .Location = New Point(300, 155),
+            .Size = New Size(Me.ClientSize.Width - 600, Me.ClientSize.Height - 240)
+        }
+        Me.Controls.Add(txtLog)
+
+    End Sub
+
+    '========================================================
+    ' PHASE 1 – ASSEMBLY SELECTION
+    '========================================================
+    Private Sub SelectAssembly(sender As Object, e As EventArgs)
+
+        Using ofd As New OpenFileDialog()
+            ofd.Title = "Select Top-Level Assembly"
+            ofd.Filter = "SolidWorks Assembly (*.sldasm)|*.sldasm"
+            ofd.Multiselect = False
+
+            If ofd.ShowDialog() <> DialogResult.OK Then Exit Sub
+
+            selectedAssemblyPath = ofd.FileName
+            LogA("📁", "Assembly selected:")
+            LogA("🔗", selectedAssemblyPath)
+        End Using
+
+    End Sub
+
+    '========================================================
+    ' PHASE 2 – SOFT GATE (LOGIC ONLY)
+    '========================================================
+    Private Function IsAssemblySelected() As Boolean
+        Return Not String.IsNullOrEmpty(selectedAssemblyPath)
+    End Function
+
+    '========================================================
+    ' PHASE 3 – SOLIDWORKS BOOTSTRAP (FORCE SELECTED VERSION)
+    '========================================================
+    Private Function EnsureSolidWorksRunning() As Boolean
+
+        Dim year As String = "2022"
+        Try
+            If cmbSW IsNot Nothing AndAlso cmbSW.SelectedItem IsNot Nothing Then
+                year = cmbSW.SelectedItem.ToString().Trim()
+            End If
+        Catch
+        End Try
+
+        Dim suffix As String = GetSWProgIDSuffix(year)
+        Dim progId As String = "SldWorks.Application." & suffix
+
+        If swApp IsNot Nothing Then
+            If IsComObjectAlive(swApp) Then
+                Return True
+            Else
+                swApp = Nothing
+            End If
+        End If
+
+        Try
+            swApp = Marshal.GetActiveObject(progId)
+            If swApp IsNot Nothing Then
+                LogA("🧷", "Attached to SolidWorks " & year & " (" & progId & ").")
+                TrySetSwVisible(swApp, True)
+                Return True
+            End If
+        Catch
+            swApp = Nothing
+        End Try
+
+        Try
+            swApp = CreateObject(progId)
+            If swApp Is Nothing Then
+                LogA("❌", "Failed to create SolidWorks instance: " & progId)
+                Return False
+            End If
+
+            TrySetSwVisible(swApp, True)
+            LogA("✅", "SolidWorks " & year & " started successfully (" & progId & ").")
+            Return True
+
+        Catch ex As Exception
+            LogA("❌", "Failed to start SolidWorks " & year & ": " & ex.Message)
+            swApp = Nothing
+            Return False
+        End Try
+
+    End Function
+
+    Private Function IsComObjectAlive(comObj As Object) As Boolean
+        Try
+            Dim v As Object = comObj.GetType().InvokeMember( _
+                "Visible", _
+                BindingFlags.GetProperty Or BindingFlags.Public Or BindingFlags.Instance, _
+                Nothing, _
+                comObj, _
+                Nothing _
+            )
+            Return True
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Sub TrySetSwVisible(appObj As Object, isVisible As Boolean)
+        Try
+            appObj.GetType().InvokeMember( _
+                "Visible", _
+                BindingFlags.SetProperty Or BindingFlags.Public Or BindingFlags.Instance, _
+                Nothing, _
+                appObj, _
+                New Object() {isVisible} _
+            )
+        Catch
+        End Try
+    End Sub
+
+    '========================================================
+    ' PHASE 4 – OPEN OR REUSE ASSEMBLY (OpenDoc)
+    '========================================================
+    Private Function EnsureAssemblyOpen() As Boolean
+
+        If swApp Is Nothing Then
+            LogA("❌", "SolidWorks not available.")
+            Return False
+        End If
+
+        If String.IsNullOrEmpty(selectedAssemblyPath) OrElse Not File.Exists(selectedAssemblyPath) Then
+            LogA("❌", "Selected assembly path invalid.")
+            Return False
+        End If
+
+        Try
+            Dim existing As Object = Nothing
+            Try
+                existing = swApp.GetType().InvokeMember( _
+                    "GetOpenDocumentByName", _
+                    BindingFlags.InvokeMethod Or BindingFlags.Public Or BindingFlags.Instance, _
+                    Nothing, _
+                    swApp, _
+                    New Object() {CStr(selectedAssemblyPath)} _
+                )
+            Catch
+                existing = Nothing
+            End Try
+
+            If existing IsNot Nothing Then
+                swModel = existing
+                LogA("📌", "Assembly already open.")
+            Else
+                Dim opened As Object = Nothing
+                Try
+                    opened = swApp.GetType().InvokeMember( _
+                        "OpenDoc", _
+                        BindingFlags.InvokeMethod Or BindingFlags.Public Or BindingFlags.Instance, _
+                        Nothing, _
+                        swApp, _
+                        New Object() {CStr(selectedAssemblyPath), CInt(2)} _
+                    )
+                Catch ex As Exception
+                    If ex.InnerException IsNot Nothing Then
+                        LogA("❌", "OpenDoc inner error: " & ex.InnerException.Message)
+                    End If
+                    LogA("❌", "OpenDoc error: " & ex.Message)
+                    opened = Nothing
+                End Try
+
+                If opened Is Nothing Then
+                    LogA("❌", "Failed to open assembly. (OpenDoc returned Nothing)")
+                    swModel = Nothing
+                    Return False
+                End If
+
+                swModel = opened
+                LogA("✅", "Assembly opened successfully (OpenDoc).")
+            End If
+
+            Try
+                swApp.GetType().InvokeMember( _
+                    "ActivateDoc3", _
+                    BindingFlags.InvokeMethod Or BindingFlags.Public Or BindingFlags.Instance, _
+                    Nothing, _
+                    swApp, _
+                    New Object() {Path.GetFileName(selectedAssemblyPath), False, 0, 0} _
+                )
+            Catch
+            End Try
+
+            Try
+                CallByName(swModel, "ResolveAllLightWeightComponents", CallType.Method, True)
+                LogA("🧩", "Resolved lightweight components.")
+            Catch
+            End Try
+
+            Try
+                CallByName(swModel, "ForceRebuild3", CallType.Method, False)
+            Catch
+            End Try
+
+            Return True
+
+        Catch ex As Exception
+            If ex.InnerException IsNot Nothing Then
+                LogA("❌", "SolidWorks inner error: " & ex.InnerException.Message)
+            End If
+            LogA("❌", "SolidWorks error: " & ex.Message)
+            swModel = Nothing
+            Return False
+        End Try
+
+    End Function
+
+    '========================================================
+    ' PHASE 5 – RUN ACTION (macro) FROM CONFIG
+    ' Config: 1=FULLPATH.SWP|ModuleName|ProcedureName
+    '========================================================
+    Private Function RunMacroSlot(slot As Integer) As Boolean
+
+        If Not macroExecMap.ContainsKey(slot) Then
+            LogA("⚠️", "No tool configured for slot " & slot.ToString() & ".")
+            Return False
+        End If
+
+        Dim execRaw As String = macroExecMap(slot)
+        Dim parts() As String = execRaw.Split("|"c)
+
+        If parts.Length < 3 Then
+            LogA("❌", "Invalid tool config for slot " & slot.ToString() & ": " & execRaw)
+            Return False
+        End If
+
+        Dim swpPath As String = parts(0).Trim()
+        Dim moduleName As String = parts(1).Trim()
+        Dim procName As String = parts(2).Trim()
+
+        Dim toolName As String = ""
+        If macroDisplayMap.ContainsKey(slot) Then
+            toolName = macroDisplayMap(slot)
+        Else
+            toolName = Path.GetFileNameWithoutExtension(swpPath)
+        End If
+
+        LogActionStart(slot, toolName, swpPath, moduleName & "." & procName)
+
+        ' ---- TELEMETRY START (PHASE 1) ----
+        Dim teleStartUtc As DateTime = DateTime.UtcNow
+        Dim asmName As String = GetAssemblyNameSafe()
+        SendTelemetrySafe("START", slot, toolName, 0, "ASM=" & asmName)
+
+        If String.IsNullOrEmpty(swpPath) OrElse Not File.Exists(swpPath) Then
+            LogA("❌", "Tool file not found: " & swpPath)
+            LogActionEnd(slot, False, "Missing tool file")
+            SendTelemetrySafe("FAIL", slot, toolName, CInt((DateTime.UtcNow - teleStartUtc).TotalMilliseconds), "ASM=" & asmName & " | Missing tool file")
+            Return False
+        End If
+
+        If swApp Is Nothing Then
+            LogA("❌", "SolidWorks not available.")
+            LogActionEnd(slot, False, "SolidWorks not available")
+            SendTelemetrySafe("FAIL", slot, toolName, CInt((DateTime.UtcNow - teleStartUtc).TotalMilliseconds), "ASM=" & asmName & " | SolidWorks not available")
+            Return False
+        End If
+
+        Dim ok As Boolean = False
+
+        ok = InvokeRunMacro2(swpPath, moduleName, procName)
+        If ok Then
+            LogActionEnd(slot, True, "Completed (RunMacro2)")
+            SendTelemetrySafe("END", slot, toolName, CInt((DateTime.UtcNow - teleStartUtc).TotalMilliseconds), "ASM=" & asmName & " | Completed (RunMacro2)")
+            Return True
+        End If
+
+        ok = InvokeRunMacro(swpPath, moduleName, procName)
+        If ok Then
+            LogActionEnd(slot, True, "Completed (fallback mode)")
+            SendTelemetrySafe("END", slot, toolName, CInt((DateTime.UtcNow - teleStartUtc).TotalMilliseconds), "ASM=" & asmName & " | Completed (fallback mode)")
+            Return True
+        End If
+
+        LogActionEnd(slot, False, "Failed")
+        SendTelemetrySafe("FAIL", slot, toolName, CInt((DateTime.UtcNow - teleStartUtc).TotalMilliseconds), "ASM=" & asmName & " | Failed")
+        Return False
+
+    End Function
+
+    Private Function InvokeRunMacro2(macroPath As String, moduleName As String, procName As String) As Boolean
+        Dim args5(4) As Object
+        args5(0) = CStr(macroPath)
+        args5(1) = CStr(moduleName)
+        args5(2) = CStr(procName)
+        args5(3) = CInt(0)
+        args5(4) = CInt(0)
+
+        Try
+            Dim result As Object = swApp.GetType().InvokeMember( _
+                "RunMacro2", _
+                BindingFlags.InvokeMethod Or BindingFlags.Public Or BindingFlags.Instance, _
+                Nothing, _
+                swApp, _
+                args5 _
+            )
+            Return ObjectToBool(result)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Function InvokeRunMacro(macroPath As String, moduleName As String, procName As String) As Boolean
+        Dim args3(2) As Object
+        args3(0) = CStr(macroPath)
+        args3(1) = CStr(moduleName)
+        args3(2) = CStr(procName)
+
+        Try
+            Dim result As Object = swApp.GetType().InvokeMember( _
+                "RunMacro", _
+                BindingFlags.InvokeMethod Or BindingFlags.Public Or BindingFlags.Instance, _
+                Nothing, _
+                swApp, _
+                args3 _
+            )
+            Return ObjectToBool(result)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Function ObjectToBool(v As Object) As Boolean
+        If v Is Nothing Then Return False
+        Try
+            If TypeOf v Is Boolean Then Return CBool(v)
+            If TypeOf v Is Integer Then Return (CInt(v) <> 0)
+            If TypeOf v Is Short Then Return (CShort(v) <> 0S)
+            If TypeOf v Is Long Then Return (CLng(v) <> 0L)
+            Return Convert.ToBoolean(v)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    '========================================================
+    ' ACTION TIMING HELPERS (Estimate + Actual)
+    '========================================================
+    Private Sub LogActionStart(slot As Integer, toolName As String, toolPath As String, entryPoint As String)
+
+        actionStart(slot) = DateTime.Now
+
+        Log("")
+        Log("🧩 ACTION START — Slot " & slot.ToString())
+
+        LogA("🧾", "Tool: " & toolName)
+        LogA("📄", "Script: " & toolPath)
+        LogA("▶", "Running: " & entryPoint)
+
+        Dim est As String = GetEstimatedTimeString(slot)
+        If est <> "" Then
+            LogA("⏱️", "Estimated: ~" & est & " (based on previous runs)")
+        Else
+            LogA("⏱️", "Estimated: learning… (will appear after first run)")
+        End If
+
+    End Sub
+
+    Private Sub LogActionEnd(slot As Integer, success As Boolean, note As String)
+
+        Dim elapsedSec As Double = 0
+        If actionStart.ContainsKey(slot) Then
+            elapsedSec = (DateTime.Now - actionStart(slot)).TotalSeconds
+            actionStart.Remove(slot)
+        End If
+
+        If elapsedSec > 0 Then
+            UpdateActionStats(slot, elapsedSec)
+        End If
+
+        Dim elapsedStr As String = FormatDuration(elapsedSec)
+
+        If success Then
+            LogA("✅", note)
+            Log("✅ ACTION END — Slot " & slot.ToString() & " (" & elapsedStr & " elapsed)")
+        Else
+            LogA("❌", note)
+            Log("❌ ACTION END — Slot " & slot.ToString() & " (" & elapsedStr & " elapsed)")
+        End If
+
+        Log("")
+
+    End Sub
+
+    Private Function GetEstimatedTimeString(slot As Integer) As String
+        If actionStats.ContainsKey(slot) Then
+            Dim st As ActionStat = actionStats(slot)
+            If st IsNot Nothing AndAlso st.Count > 0 AndAlso st.AvgSeconds > 0 Then
+                Return FormatDuration(st.AvgSeconds)
+            End If
+        End If
+        Return ""
+    End Function
+
+    Private Sub UpdateActionStats(slot As Integer, lastSeconds As Double)
+
+        If lastSeconds <= 0 Then Exit Sub
+
+        Dim st As ActionStat = Nothing
+        If actionStats.ContainsKey(slot) Then
+            st = actionStats(slot)
+        Else
+            st = New ActionStat()
+            st.Count = 0
+            st.AvgSeconds = 0
+            actionStats(slot) = st
+        End If
+
+        st.Count += 1
+        If st.Count = 1 Then
+            st.AvgSeconds = lastSeconds
+        Else
+            st.AvgSeconds = ((st.AvgSeconds * CDbl(st.Count - 1)) + lastSeconds) / CDbl(st.Count)
+        End If
+
+        SaveActionStats()
+
+    End Sub
+
+    Private Function FormatDuration(seconds As Double) As String
+        If seconds < 0 Then seconds = 0
+        Dim total As Integer = CInt(Math.Floor(seconds))
+        Dim mins As Integer = total \ 60
+        Dim secs As Integer = total Mod 60
+        Return mins.ToString("00") & ":" & secs.ToString("00")
+    End Function
+
+    Private Sub LoadActionStats()
+        Try
+            actionStats.Clear()
+
+            Dim p As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ACTION_TIMES_FILE)
+            If Not File.Exists(p) Then Exit Sub
+
+            Dim lines() As String = File.ReadAllLines(p)
+            For Each line As String In lines
+                Dim t As String = line.Trim()
+                If t = "" OrElse t.StartsWith("#") Then Continue For
+
+                Dim parts() As String = t.Split("|"c)
+                If parts.Length < 3 Then Continue For
+
+                Dim slot As Integer = 0
+                Dim cnt As Integer = 0
+                Dim avg As Double = 0
+
+                If Not Integer.TryParse(parts(0).Trim(), slot) Then Continue For
+                If Not Integer.TryParse(parts(1).Trim(), cnt) Then Continue For
+                If Not Double.TryParse(parts(2).Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, avg) Then Continue For
+
+                Dim st As New ActionStat()
+                st.Count = Math.Max(0, cnt)
+                st.AvgSeconds = Math.Max(0, avg)
+                actionStats(slot) = st
+            Next
+        Catch
+        End Try
+    End Sub
+
+    Private Sub SaveActionStats()
+        Try
+            Dim p As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ACTION_TIMES_FILE)
+
+            Using sw As New StreamWriter(p, False)
+                sw.WriteLine("# slot|count|avg_seconds")
+                For Each kv As KeyValuePair(Of Integer, ActionStat) In actionStats
+                    Dim slot As Integer = kv.Key
+                    Dim st As ActionStat = kv.Value
+                    If st Is Nothing Then Continue For
+                    sw.WriteLine(slot.ToString() & "|" & st.Count.ToString() & "|" & st.AvgSeconds.ToString(CultureInfo.InvariantCulture))
+                Next
+            End Using
+        Catch
+        End Try
+    End Sub
+
+    '========================================================
+    ' SolidWorks ProgID suffix mapping
+    '========================================================
+    Private Function GetSWProgIDSuffix(selectedYear As String) As String
+        Select Case selectedYear
+            Case "2022" : Return "30"
+            Case "2023" : Return "31"
+            Case "2024" : Return "32"
+            Case "2025" : Return "33"
+        End Select
+        Return "30"
+    End Function
+
+    '========================================================
+    ' SIDE PANELS
+    '========================================================
+    Private Sub BuildSidePanels()
+
+        pnlDesign = New Panel() With {
+            .Width = 250,
+            .Location = New Point(20, 155),
+            .Height = Me.ClientSize.Height - 240,
+            .BorderStyle = BorderStyle.FixedSingle
+        }
+        Me.Controls.Add(pnlDesign)
+
+        pnlDesign.Controls.Add(New Label() With {
+            .Text = "DESIGN TOOLS",
+            .Dock = DockStyle.Top,
+            .Height = 32,
+            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleCenter
+        })
+
+        pnlDesignContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlDesign.Controls.Add(pnlDesignContent)
+
+        pnlEngineering = New Panel() With {
+            .Width = 250,
+            .Location = New Point(Me.ClientSize.Width - 270, 155),
+            .Height = Me.ClientSize.Height - 240,
+            .BorderStyle = BorderStyle.FixedSingle,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Right
+        }
+        Me.Controls.Add(pnlEngineering)
+
+        pnlEngineering.Controls.Add(New Label() With {
+            .Text = "ENGINEERING TOOLS",
+            .Dock = DockStyle.Top,
+            .Height = 32,
+            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleCenter
+        })
+
+        pnlEngineeringContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlEngineering.Controls.Add(pnlEngineeringContent)
+
+    End Sub
+
+    '========================================================
+    ' FOOTER
+    '========================================================
+    Private Sub BuildFooter()
+
+        lblFooter = New Label() With {
+            .Text = "Registered Name: John Byrne Conveyors & Packaging Services Ltd. T/A CPS",
+            .Font = New Font("Segoe UI", 8, FontStyle.Italic),
+            .AutoSize = True,
+            .Anchor = AnchorStyles.Bottom Or AnchorStyles.Left,
+            .Location = New Point(300, Me.ClientSize.Height - 28)
+        }
+        Me.Controls.Add(lblFooter)
+
+    End Sub
+
+    '========================================================
+    ' BUTTON STYLE – LOCKED
+    '========================================================
+    Private Sub StyleDisabledButton(btn As Button)
+
+        btn.Enabled = False
+        btn.BackColor = Color.FromArgb(230, 230, 230)
+        btn.ForeColor = Color.FromArgb(140, 140, 140)
+        btn.FlatStyle = FlatStyle.Flat
+        btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200)
+        btn.FlatAppearance.BorderSize = 1
+        btn.Cursor = Cursors.[Default]
+
+        If Not btn.Text.StartsWith("🔒") Then
+            btn.Text = "🔒 " & btn.Text
+        End If
+
+        Dim tip As New ToolTip()
+        tip.SetToolTip(btn, "Locked — upgrade license to use this tool")
+
+    End Sub
+
+    '========================================================
+    ' BUTTON BUILDER
+    '========================================================
+    Private Sub AddButton(parent As Panel, title As String, slot As Integer, y As Integer, clickHandler As EventHandler)
+
+        Dim b As New Button()
+
+        b.Text = title
+        b.Tag = slot
+        b.Name = "btnTool_" & slot.ToString()
+
+        b.Location = New Point(18, y)
+        b.Size = New Size(parent.Width - 36, 32)
+
+        b.FlatStyle = FlatStyle.Flat
+        b.FlatAppearance.BorderSize = 1
+        b.FlatAppearance.BorderColor = Color.FromArgb(150, 90, 190)
+
+        b.BackColor = Color.FromArgb(40, 45, 58)
+        b.ForeColor = Color.White
+
+        AddHandler b.Click, clickHandler
+
+        parent.Controls.Add(b)
+
+    End Sub
+
+    '========================================================
+    ' BUILD BUTTONS
+    '========================================================
+    Private Sub BuildButtons()
+
+        pnlDesignContent.Controls.Clear()
+        pnlEngineeringContent.Controls.Clear()
+
+        Dim y As Integer = 60
+        For i As Integer = 1 To 10
+            If macroDisplayMap.ContainsKey(i) Then
+                AddButton(pnlDesignContent, macroDisplayMap(i), i, y, AddressOf RunDesignTool)
+                y += 38
+            End If
+        Next
+
+        y = 60
+        AddButton(pnlEngineeringContent, "CONVEYOR CALCUALTION", 11, y, AddressOf RunEngineeringTool)
+        y += 38
+        AddButton(pnlEngineeringContent, "PNEUMATIC CALCULATION", 12, y, AddressOf RunEngineeringTool)
+
+    End Sub
+
+    '========================================================
+    ' MACRO LOADER
+    '========================================================
+    Private Sub LoadMacrosFromConfig()
+
+        macroDisplayMap.Clear()
+        macroExecMap.Clear()
+
+        Dim cfgPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CONFIG_FILE)
+        If Not File.Exists(cfgPath) Then Return
+
+        For Each rawLine As String In File.ReadAllLines(cfgPath)
+
+            Dim line As String = rawLine.Trim()
+            If line = "" OrElse line.StartsWith("[") OrElse Not line.Contains("=") Then Continue For
+
+            Dim parts() As String = line.Split(New Char() {"="c}, 2)
+            Dim slot As Integer
+            If Not Integer.TryParse(parts(0).Trim(), slot) Then Continue For
+
+            Dim execRaw As String = parts(1).Trim()
+
+            Dim swpPath As String = execRaw
+            If swpPath.Contains("|") Then swpPath = swpPath.Split("|"c)(0).Trim()
+            If Not swpPath.ToLower().EndsWith(".swp") Then Continue For
+
+            macroExecMap(slot) = execRaw
+            macroDisplayMap(slot) = Path.GetFileNameWithoutExtension(swpPath)
+
+        Next
+
+    End Sub
+
+    '========================================================
+    ' TIER LOCKS – FINAL FIX
+    '========================================================
+    Private Sub ApplyTierLocks()
+
+        For Each c As Control In pnlDesignContent.Controls
+            Dim b As Button = TryCast(c, Button)
+            If b Is Nothing Then Continue For
+            If Not licenseValid OrElse Not TierLocks.CanRunDesignTool(CInt(b.Tag), currentTier) Then
+                StyleDisabledButton(b)
+            End If
+        Next
+
+        For Each c As Control In pnlEngineeringContent.Controls
+            Dim b As Button = TryCast(c, Button)
+            If b Is Nothing Then Continue For
+            If Not licenseValid OrElse Not TierLocks.CanRunEngineeringTool(CInt(b.Tag), currentTier) Then
+                StyleDisabledButton(b)
+            End If
+        Next
+
+    End Sub
+
+    '========================================================
+    ' ACTIONS
+    '========================================================
+    Private Sub RunDesignTool(sender As Object, e As EventArgs)
+
+        If Not IsAssemblySelected() Then
+            LogA("⚠️", "Please select a Top-Level Assembly before running design tools.")
+            Return
+        End If
+
+        Dim slot As Integer = 0
+        Try
+            Dim b As Button = TryCast(sender, Button)
+            If b IsNot Nothing AndAlso b.Tag IsNot Nothing Then
+                slot = CInt(b.Tag)
+            End If
+        Catch
+            slot = 0
+        End Try
+
+        If slot <= 0 Then
+            LogA("❌", "Invalid tool slot.")
+            Return
+        End If
+
+        ' -------------------------------------------------
+        ' HYBRID SEAT ENFORCEMENT (NO UI CHANGE)
+        ' Runs AFTER license is verified, BEFORE SolidWorks work.
+        ' -------------------------------------------------
+        If Not EnsureSeatForAction() Then
+            Return
+        End If
+
+        If Not EnsureSolidWorksRunning() Then
+            LogA("❌", "SolidWorks not available. Please start SolidWorks and try again.")
+            Return
+        End If
+
+        If Not EnsureAssemblyOpen() Then
+            Return
+        End If
+
+        RunMacroSlot(slot)
+
+    End Sub
+
+    '========================================================
+    ' PHASE 7 – ENGINEERING TOOLS (NO SOLIDWORKS GATE)
+    '========================================================
+    Private Sub RunEngineeringTool(sender As Object, e As EventArgs)
+
+        Dim slot As Integer = 0
+        Dim b As Button = TryCast(sender, Button)
+
+        Try
+            If b IsNot Nothing AndAlso b.Tag IsNot Nothing Then
+                slot = CInt(b.Tag)
+            End If
+        Catch
+            slot = 0
+        End Try
+
+        If slot <= 0 Then
+            LogA("❌", "Invalid engineering tool slot.")
+            Return
+        End If
+
+        LogA("🧪", "Engineering tool slot = " & slot.ToString())
+
+        Dim frm As Form = Nothing
+        Dim toolName As String = ""
+
+        Try
+            If slot = 11 Then
+                toolName = "CONVEYOR CALCUALTION"
+                frm = New ConveyorCalculatorForm()
+
+            ElseIf slot = 12 Then
+                toolName = "PNEUMATIC CALCULATION"
+                frm = New PneumaticCylinderCalculatorForm()
+
+            Else
+                LogA("⚠️", "Engineering tool not wired for slot " & slot.ToString() & ".")
+                Return
+            End If
+
+        Catch ex As Exception
+            LogA("❌", "Failed to create tool window: " & ex.Message)
+            Return
+        End Try
+
+        If frm Is Nothing Then
+            LogA("❌", "Tool window is Nothing.")
+            Return
+        End If
+
+        ' Apply MDAT theme to tool window
+        Try
+            ApplyThemeToToolForm(frm)
+        Catch
+        End Try
+
+        Try
+            Log("")
+            Log("🧩 ACTION START — " & toolName)
+            frm.Show(Me)
+            frm.BringToFront()
+            Log("✅ ACTION END — " & toolName & " (opened)")
+            Log("")
+        Catch ex As Exception
+            LogA("❌", "Failed to show tool window: " & ex.Message)
+        End Try
+
+    End Sub
+
+    '========================================================
+    ' Apply current MDAT theme to any engineering tool form
+    '========================================================
+    Private Sub ApplyThemeToToolForm(frm As Form)
+        If frm Is Nothing Then Exit Sub
+
+        Dim bg As Color = BG_LIGHT
+        Dim panel As Color = PANEL_LIGHT
+        Dim isDark As Boolean = False
+
+        Select Case currentTheme
+            Case ThemeMode.PANEL_DARK
+                bg = BG_DARK
+                panel = PANEL_DARK
+                isDark = True
+
+            Case ThemeMode.PANEL_MM
+                bg = BG_MM
+                panel = PANEL_MM
+                isDark = False
+
+            Case ThemeMode.PANEL_CUSTOM
+                bg = BG_LIGHT
+                panel = PANEL_LIGHT
+                isDark = False
+
+            Case Else
+                bg = BG_LIGHT
+                panel = PANEL_LIGHT
+                isDark = False
+        End Select
+
+        Try
+            ThemeApplier.ApplyTheme(frm, bg, panel, customAccent, isDark)
+        Catch
+        End Try
+    End Sub
+
+    '========================================================
+    ' LICENSE
+    '========================================================
+    Private Sub ResolveTierFromLicense(lic As LicenseInfo)
+
+        licenseValid = False
+
+        If lic Is Nothing OrElse Not lic.IsValid Then
+            lblLicence.Text = "LICENCE: INVALID"
+            lblLicence.ForeColor = Color.Red
+
+            lblValidity.Text = "Please activate a valid license."
+            lblValidity.ForeColor = Color.Red
+            Return
+        End If
+
+        ' -------------------------
+        ' VALID
+        ' -------------------------
+        licenseValid = True
+        currentTier = lic.Tier
+
+        ' Theme-aware label color (do NOT break dark mode)
+        lblLicence.ForeColor = If(currentThemeIsDark, Color.White, Color.Black)
+
+        ' Always keep first line short so it never clips
+        lblLicence.Text = "LICENCE: ACTIVE"
+
+        ' Tier name
+        Dim tierName As String = GetTierNameSafe(lic.Tier)
+
+        ' Seats (safe read)
+        Dim seatsVal As Integer = -1
+        Try
+            seatsVal = lic.Seats
+        Catch
+            seatsVal = -1
+        End Try
+
+        Dim seatsShort As String
+        If seatsVal >= 0 Then
+            seatsShort = "S:" & seatsVal.ToString()
+        Else
+            seatsShort = "S:N/A"
+        End If
+
+        ' Expiry handling
+        If lic.ExpiryUtc <= DateTime.UtcNow Then
+            lblValidity.Text = tierName & " | " & seatsShort & " | ⛔ EXPIRED"
+            lblValidity.ForeColor = Color.Red
+            Return
+        End If
+
+        Dim daysLeft As Integer = CInt(Math.Floor((lic.ExpiryUtc - DateTime.UtcNow).TotalDays))
+        If daysLeft < 0 Then daysLeft = 0
+
+        ' Build compact second line that fits in the header area
+        If lic.Tier = 0 Then
+            ' TRIAL messaging
+            If daysLeft <= EXPIRY_CRITICAL_DAYS Then
+                lblValidity.Text = "TRIAL | " & seatsShort & " | ⛔ ENDING IN " & daysLeft.ToString() & "D"
+                lblValidity.ForeColor = Color.Red
+            ElseIf daysLeft <= EXPIRY_WARNING_DAYS Then
+                lblValidity.Text = "TRIAL | " & seatsShort & " | ⚠ ENDING IN " & daysLeft.ToString() & "D"
+                lblValidity.ForeColor = Color.DarkOrange
+            Else
+                lblValidity.Text = "TRIAL | " & seatsShort & " | " & daysLeft.ToString() & "D LEFT"
+                lblValidity.ForeColor = Color.Green
+            End If
+        Else
+            ' Paid license messaging
+            If daysLeft <= EXPIRY_CRITICAL_DAYS Then
+                lblValidity.Text = tierName & " | " & seatsShort & " | ⛔ EXPIRING IN " & daysLeft.ToString() & "D"
+                lblValidity.ForeColor = Color.Red
+            ElseIf daysLeft <= EXPIRY_WARNING_DAYS Then
+                lblValidity.Text = tierName & " | " & seatsShort & " | ⚠ EXPIRING IN " & daysLeft.ToString() & "D"
+                lblValidity.ForeColor = Color.DarkOrange
+            Else
+                lblValidity.Text = tierName & " | " & seatsShort & " | " & daysLeft.ToString() & "D LEFT"
+                lblValidity.ForeColor = Color.Green
+            End If
+        End If
+
+    End Sub
+
+    Private Function GetTierNameSafe(tier As Integer) As String
+        Select Case tier
+            Case 0 : Return "TRIAL"
+            Case 1 : Return "STANDARD"
+            Case 2 : Return "PREMIUM"
+            Case 3 : Return "PREMIUM PLUS"
+            Case Else : Return "UNKNOWN"
+        End Select
+    End Function
+
+    Private Sub ShowLicensePopup(sender As Object, e As EventArgs)
+        MessageBox.Show(lblLicence.Text & vbCrLf & lblValidity.Text, "License Status", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    '========================================================
+    ' THEME
+    '========================================================
+    Private Sub ShowThemeMenu(sender As Object, e As EventArgs)
+
+        Dim m As New ContextMenuStrip()
+        m.Items.Add("Light", Nothing, Sub() SetTheme(ThemeMode.PANEL_LIGHT))
+        m.Items.Add("Dark", Nothing, Sub() SetTheme(ThemeMode.PANEL_DARK))
+        m.Items.Add("MetaMech", Nothing, Sub() SetTheme(ThemeMode.PANEL_MM))
+        m.Items.Add("Custom…", Nothing, Sub() PickCustomTheme())
+        m.Show(btnTheme, New Point(0, btnTheme.Height))
+
+    End Sub
+
+    Private Sub PickCustomTheme()
+        Using d As New ColorDialog()
+            If d.ShowDialog() = DialogResult.OK Then
+                customAccent = d.Color
+                SetTheme(ThemeMode.PANEL_CUSTOM)
+            End If
+        End Using
+    End Sub
+
+    Private Sub SetTheme(m As ThemeMode)
+        currentTheme = m
+        ApplyTheme()
+    End Sub
+
+    Private Sub ApplyTheme()
+
+        Select Case currentTheme
+            Case ThemeMode.PANEL_LIGHT
+                Me.BackColor = BG_LIGHT
+                pnlHeader.BackColor = PANEL_LIGHT
+                currentThemeIsDark = False
+
+            Case ThemeMode.PANEL_DARK
+                Me.BackColor = BG_DARK
+                pnlHeader.BackColor = PANEL_DARK
+                currentThemeIsDark = True
+
+            Case ThemeMode.PANEL_MM
+                Me.BackColor = BG_MM
+                pnlHeader.BackColor = PANEL_MM
+                currentThemeIsDark = False
+
+            Case ThemeMode.PANEL_CUSTOM
+                Me.BackColor = BG_LIGHT
+                pnlHeader.BackColor = PANEL_LIGHT
+                currentThemeIsDark = False
+        End Select
+
+        pnlHeaderLine.BackColor = customAccent
+
+        ' keep license header color consistent with theme after theme switch
+        Try
+            If licenseValid Then
+                lblLicence.ForeColor = If(currentThemeIsDark, Color.White, Color.Black)
+            End If
+        Catch
+        End Try
+
+    End Sub
+
+    '========================================================
+    ' HYBRID SEAT ENFORCEMENT (NO UI CHANGE)
+    '========================================================
+    Private Function EnsureSeatForAction() As Boolean
+
+        ' Basic license gating
+        If Not licenseValid OrElse activeLicense Is Nothing OrElse Not activeLicense.IsValid Then
+            LogA("⛔", "License invalid. Please activate a valid license.")
+            Return False
+        End If
+
+        Try
+            If activeLicense.ExpiryUtc <= DateTime.UtcNow Then
+                LogA("⛔", "License expired. Please renew your license.")
+                Return False
+            End If
+        Catch
+            ' if expiry read fails, block to be safe
+            LogA("⛔", "License expiry check failed. Please re-activate your license.")
+            Return False
+        End Try
+
+        ' Extract licenseId safely (no compile dependency on exact property name)
+        Dim licenseId As String = GetLicenseIdSafe(activeLicense)
+        If licenseId Is Nothing OrElse licenseId.Trim().Length = 0 Then
+            LogA("❌", "Seat check failed: License ID not found in license payload.")
+            Return False
+        End If
+
+        ' Tier + seats
+        Dim tier As Integer = 0
+        Dim seatsMax As Integer = 1
+
+        Try
+            tier = activeLicense.Tier
+        Catch
+            tier = currentTier
+        End Try
+
+        Try
+            seatsMax = activeLicense.Seats
+            If seatsMax <= 0 Then seatsMax = 1
+        Catch
+            seatsMax = 1
+        End Try
+
+        ' Run the hybrid seat check
+        Try
+            SeatEnforcer.EnsureSeatOrThrow(licenseId.Trim(), tier, seatsMax)
+            Return True
+        Catch ex As Exception
+            LogA("⛔", "Seat enforcement blocked this action.")
+            LogA("🧾", ex.Message)
+            MessageBox.Show(ex.Message, "MDAT Seat Enforcement", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return False
+        End Try
+
+    End Function
+
+    Private Function GetLicenseIdSafe(lic As LicenseInfo) As String
+        If lic Is Nothing Then Return ""
+
+        Try
+            Dim t As Type = lic.GetType()
+
+            ' Try common property names
+            Dim names() As String = New String() {"LicenseId", "LICENSEID", "LicenseID", "licenseId", "Id", "ID"}
+            Dim i As Integer
+
+            For i = 0 To names.Length - 1
+                Dim p As PropertyInfo = t.GetProperty(names(i), BindingFlags.Public Or BindingFlags.Instance Or BindingFlags.IgnoreCase)
+                If p IsNot Nothing Then
+                    Dim v As Object = p.GetValue(lic, Nothing)
+                    If v IsNot Nothing Then
+                        Dim s As String = Convert.ToString(v)
+                        If s IsNot Nothing Then
+                            s = s.Trim()
+                            If s.Length > 0 Then Return s
+                        End If
+                    End If
+                End If
+            Next
+
+            ' Try common field names
+            For i = 0 To names.Length - 1
+                Dim f As FieldInfo = t.GetField(names(i), BindingFlags.Public Or BindingFlags.NonPublic Or BindingFlags.Instance Or BindingFlags.IgnoreCase)
+                If f IsNot Nothing Then
+                    Dim v As Object = f.GetValue(lic)
+                    If v IsNot Nothing Then
+                        Dim s As String = Convert.ToString(v)
+                        If s IsNot Nothing Then
+                            s = s.Trim()
+                            If s.Length > 0 Then Return s
+                        End If
+                    End If
+                End If
+            Next
+
+        Catch
+        End Try
+
+        Return ""
+    End Function
+
+    Private Sub LoadSeatConfigFromConfig()
+        Try
+            Dim cfgPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CONFIG_FILE)
+            If Not File.Exists(cfgPath) Then Exit Sub
+
+            Dim seatServer As String = ""
+            Dim clientToken As String = ""
+
+            For Each rawLine As String In File.ReadAllLines(cfgPath)
+                Dim line As String = rawLine.Trim()
+                If line = "" OrElse line.StartsWith("#") OrElse line.StartsWith("[") Then Continue For
+
+                Dim eq As Integer = line.IndexOf("="c)
+                If eq <= 0 Then Continue For
+
+                Dim k As String = line.Substring(0, eq).Trim().ToUpperInvariant()
+                k = k.Replace(ChrW(&HFEFF), "") ' strip BOM if present
+                Dim v As String = line.Substring(eq + 1).Trim()
+
+                If k = "SEAT_SERVER" Then
+                    seatServer = v
+                ElseIf k = "CLIENT_TOKEN" Then
+                    clientToken = v
+                ElseIf k = "SYNC_URL" Then
+                    syncUrl = v
+                End If
+            Next
+
+            If seatServer <> "" Then
+                Try
+                    SeatServerClient.ServerBaseUrl = seatServer
+                    LogA("🔗", "Seat server loaded from config.")
+                Catch
+                End Try
+            End If
+
+            If clientToken <> "" Then
+                Try
+                    SeatServerClient.ClientToken = clientToken
+                    LogA("🔐", "Client token loaded from config.")
+                Catch
+                End Try
+
+                telemetryToken = clientToken
+            End If
+
+        Catch
+        End Try
+    End Sub
+
+    '========================================================
+    ' TELEMETRY HELPERS (PHASE 1) - NO UI CHANGE
+    '========================================================
+    Private Sub SendTelemetrySafe(status As String, slot As Integer, actionName As String, durationMs As Integer, logText As String)
+        Try
+            If syncUrl Is Nothing OrElse syncUrl.Trim() = "" Then Exit Sub
+            If telemetryToken Is Nothing OrElse telemetryToken.Trim() = "" Then Exit Sub
+
+            Dim exeVersion As String = GetExeVersionSafe()
+
+            Dim licenseId As String = ""
+            Try
+                licenseId = GetLicenseIdSafe(activeLicense)
+            Catch
+                licenseId = ""
+            End Try
+
+            Dim machineId As String = ""
+            Try
+                machineId = Environment.MachineName
+            Catch
+                machineId = ""
+            End Try
+
+            TelemetryService.SendEvent(syncUrl, telemetryToken, status, slot, actionName, exeVersion, licenseId, machineId, durationMs, logText)
+        Catch
+            ' never block EXE
+        End Try
+    End Sub
+
+    Private Function GetExeVersionSafe() As String
+        Try
+            Dim v As Version = Assembly.GetExecutingAssembly().GetName().Version
+            If v IsNot Nothing Then Return v.ToString()
+        Catch
+        End Try
+        Return "1.0"
+    End Function
+
+    '========================================================
+    ' Assembly label for telemetry/logging (NO DB CHANGE)
+    '========================================================
+    Private Function GetAssemblyNameSafe() As String
+        Try
+            If selectedAssemblyPath Is Nothing Then Return ""
+            Dim p As String = selectedAssemblyPath.Trim()
+            If p = "" Then Return ""
+            Return Path.GetFileName(p)
+        Catch
+            Return ""
+        End Try
+    End Function
+
+    '========================================================
+    ' LOG (Option A)
+    '========================================================
+    Private Sub Log(msg As String)
+        If txtLog Is Nothing Then Return
+        txtLog.AppendText(DateTime.Now.ToString("HH:mm:ss") & "  " & msg & vbCrLf)
+    End Sub
+
+    Private Sub LogA(icon As String, msg As String)
+        If String.IsNullOrEmpty(icon) Then
+            Log(msg)
+        Else
+            Log(icon & " " & msg)
+        End If
+    End Sub
+
+End Class
