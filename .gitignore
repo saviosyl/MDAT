@@ -1,0 +1,51 @@
+# ===========================================
+# MDAT .gitignore
+# ===========================================
+
+# --- Build artifacts ---
+output/*.exe
+output/*.dll
+output/*.log
+
+# --- Sensitive / private keys ---
+output/MetaMech_RSA_PRIVATE.xml
+
+# --- License files ---
+output/license.key
+
+# --- Config with tokens ---
+output/Config.txt
+
+# --- Seat configuration ---
+output/SeatConfig.txt
+
+# --- Debug / runtime data ---
+output/lic_debug.txt
+output/sync_queue.jsonl
+output/action_history.csv
+output/action_times.txt
+
+# --- UI state ---
+output/ui.ini
+output/ui.settings
+
+# --- Temp folder ---
+temp/
+
+# --- Visual Studio ---
+*.user
+*.suo
+bin/
+obj/
+
+# --- Backup files ---
+app/tools/backup/
+app/BACKUP/
+
+# ===========================================
+# KEEP (do not ignore):
+#   output/assets/       (themes, icons, logos)
+#   output/Generate-License.ps1
+#   output/test_macro_server.cmd
+#   output/MetaMech_RSA_PUBLIC.xml
+# ===========================================
