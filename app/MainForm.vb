@@ -81,6 +81,25 @@ Public Class MainForm
     Private lblValidity As Label
 
     '========================================================
+    ' FOOTER PANEL (premium status bar)
+    '========================================================
+    Private pnlFooter As Panel
+    Private pnlFooterBorder As Panel
+    Private lblFooterLeft As Label
+    Private lblFooterRight As Label
+
+    '========================================================
+    ' LOG HEADER LABEL
+    '========================================================
+    Private lblLogHeader As Label
+
+    '========================================================
+    ' CENTRE LABELS (section headers)
+    '========================================================
+    Private lblSwVersion As Label
+    Private lblAssembly As Label
+
+    '========================================================
     ' CENTRE
     '========================================================
     Private cmbSW As ComboBox
@@ -157,10 +176,10 @@ Public Class MainForm
             Me.StartPosition = FormStartPosition.CenterScreen
             Me.Font = New Font("Segoe UI", 10)
             Me.FormBorderStyle = FormBorderStyle.Sizable
-            Me.MinimumSize = New Size(1000, 650)
+            Me.MinimumSize = New Size(1100, 700)
 
             Dim wa As Rectangle = Screen.PrimaryScreen.WorkingArea
-            Me.Size = New Size(CInt(wa.Width * 0.9), CInt(wa.Height * 0.85))
+            Me.Size = New Size(CInt(wa.Width * 0.92), CInt(wa.Height * 0.88))
 
             BuildHeader()
             BuildCentre()
@@ -236,13 +255,13 @@ Public Class MainForm
     Private Sub BuildHeader()
         pnlHeader = New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 90,
-            .BackColor = PANEL_LIGHT
+            .Height = 110,
+            .BackColor = Color.FromArgb(15, 23, 42)
         }
         Me.Controls.Add(pnlHeader)
 
         picLogo = New PictureBox() With {
-            .Size = New Size(160, 70),
+            .Size = New Size(200, 90),
             .Location = New Point(20, 10),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
@@ -263,36 +282,71 @@ Public Class MainForm
 
         lblTitle = New Label() With {
             .Text = "MetaMech Mechanical Design Automation",
-            .Font = New Font("Segoe UI", 18, FontStyle.Bold),
+            .Font = New Font("Segoe UI Semibold", 20, FontStyle.Bold),
+            .ForeColor = Color.White,
+            .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 15, 20)
+            .Location = New Point(picLogo.Right + 15, 18)
         }
         pnlHeader.Controls.Add(lblTitle)
 
         lblSubtitle = New Label() With {
             .Text = "Designed by MetaMech Solutions",
-            .Font = New Font("Segoe UI", 9, FontStyle.Italic),
+            .Font = New Font("Segoe UI", 10, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(169, 199, 232),
+            .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 15, 55)
+            .Location = New Point(picLogo.Right + 15, 58)
         }
         pnlHeader.Controls.Add(lblSubtitle)
 
-        btnTheme = New Button() With {.Text = "THEME ▾", .Size = New Size(90, 28)}
+        lblVersion = New Label() With {
+            .Text = "v1.0",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(120, 140, 170),
+            .BackColor = Color.Transparent,
+            .AutoSize = True
+        }
+        pnlHeader.Controls.Add(lblVersion)
+
+        btnTheme = New Button() With {
+            .Text = "🌙 DARK",
+            .Size = New Size(90, 28),
+            .FlatStyle = FlatStyle.Flat,
+            .ForeColor = Color.White,
+            .BackColor = Color.FromArgb(15, 23, 42),
+            .Cursor = Cursors.Hand
+        }
+        btnTheme.FlatAppearance.BorderSize = 0
+        btnTheme.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 40, 60)
         AddHandler btnTheme.Click, AddressOf ShowThemeMenu
         pnlHeader.Controls.Add(btnTheme)
 
-        btnLicense = New Button() With {.Text = "LICENSE ▾", .Size = New Size(90, 28)}
+        btnLicense = New Button() With {
+            .Text = "LICENSE ▾",
+            .Size = New Size(90, 28),
+            .FlatStyle = FlatStyle.Flat,
+            .ForeColor = Color.White,
+            .BackColor = Color.FromArgb(15, 23, 42),
+            .Cursor = Cursors.Hand
+        }
+        btnLicense.FlatAppearance.BorderSize = 0
+        btnLicense.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 40, 60)
         AddHandler btnLicense.Click, AddressOf ShowLicensePopup
         pnlHeader.Controls.Add(btnLicense)
 
         lblLicence = New Label() With {
             .Font = New Font("Segoe UI", 9, FontStyle.Bold),
+            .ForeColor = Color.White,
+            .BackColor = Color.Transparent,
             .AutoSize = True
         }
         pnlHeader.Controls.Add(lblLicence)
 
         lblValidity = New Label() With {
             .Font = New Font("Segoe UI", 8),
+            .ForeColor = Color.White,
+            .BackColor = Color.Transparent,
             .AutoSize = True
         }
         pnlHeader.Controls.Add(lblValidity)
@@ -301,8 +355,8 @@ Public Class MainForm
 
         pnlHeaderLine = New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 2,
-            .BackColor = customAccent
+            .Height = 3,
+            .BackColor = Color.FromArgb(0, 180, 255)
         }
         Me.Controls.Add(pnlHeaderLine)
     End Sub
@@ -313,38 +367,80 @@ Public Class MainForm
         btnTheme.Location = New Point(pnlHeader.Width - 110, 15)
         btnLicense.Location = New Point(pnlHeader.Width - 210, 15)
 
-        lblLicence.Location = New Point(pnlHeader.Width - 260, 50)
-        lblValidity.Location = New Point(pnlHeader.Width - 260, 68)
+        If lblVersion IsNot Nothing Then
+            lblVersion.Location = New Point(pnlHeader.Width - 50, 85)
+        End If
+
+        lblLicence.Location = New Point(pnlHeader.Width - 260, 52)
+        lblValidity.Location = New Point(pnlHeader.Width - 260, 72)
     End Sub
 
     '========================================================
     ' CENTRE (OLD UI FROM MainForm - old.txt)
     '========================================================
     Private Sub BuildCentre()
+        lblSwVersion = New Label() With {
+            .Text = "SOLIDWORKS VERSION",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(120, 140, 170),
+            .AutoSize = True,
+            .Location = New Point(250, 120)
+        }
+        Me.Controls.Add(lblSwVersion)
+
         cmbSW = New ComboBox() With {
             .DropDownStyle = ComboBoxStyle.DropDownList,
-            .Location = New Point(250, 105)
+            .FlatStyle = FlatStyle.Flat,
+            .Font = New Font("Segoe UI", 10),
+            .Location = New Point(250, 138)
         }
         cmbSW.Items.AddRange(New String() {"2022", "2023", "2024", "2025"})
         cmbSW.SelectedIndex = 0
         Me.Controls.Add(cmbSW)
 
+        lblAssembly = New Label() With {
+            .Text = "ASSEMBLY",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(120, 140, 170),
+            .AutoSize = True,
+            .Location = New Point(400, 120)
+        }
+        Me.Controls.Add(lblAssembly)
+
         btnSelectFile = New Button() With {
             .Text = "Select Assembly (.SLDASM)",
-            .Size = New Size(260, 35),
-            .Location = New Point(400, 100)
+            .Size = New Size(260, 38),
+            .Location = New Point(400, 134),
+            .FlatStyle = FlatStyle.Flat,
+            .BackColor = Color.FromArgb(0, 180, 255),
+            .ForeColor = Color.White,
+            .Font = New Font("Segoe UI Semibold", 9.5F, FontStyle.Bold),
+            .Cursor = Cursors.Hand
         }
+        btnSelectFile.FlatAppearance.BorderSize = 0
         AddHandler btnSelectFile.Click, AddressOf SelectAssembly
         Me.Controls.Add(btnSelectFile)
 
-        ' NOTE: widened right panel means we must slightly reduce log width (keeps it visible, no overlap)
+        lblLogHeader = New Label() With {
+            .Text = "OUTPUT LOG",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(120, 140, 170),
+            .AutoSize = True,
+            .Location = New Point(250, 180)
+        }
+        Me.Controls.Add(lblLogHeader)
+
         txtLog = New TextBox() With {
             .Multiline = True,
             .ReadOnly = True,
             .ScrollBars = ScrollBars.Vertical,
+            .BackColor = Color.FromArgb(22, 27, 34),
+            .ForeColor = Color.FromArgb(200, 210, 220),
+            .Font = New Font("Consolas", 9.5F),
+            .BorderStyle = BorderStyle.None,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
-            .Location = New Point(250, 150),
-            .Size = New Size(Me.ClientSize.Width - 620, Me.ClientSize.Height - 220)
+            .Location = New Point(250, 198),
+            .Size = New Size(Me.ClientSize.Width - 620, Me.ClientSize.Height - 270)
         }
         Me.Controls.Add(txtLog)
     End Sub
@@ -355,40 +451,67 @@ Public Class MainForm
     Private Sub BuildSidePanels()
         pnlDesign = New Panel() With {
             .Width = 210,
-            .Location = New Point(20, 150),
-            .Height = Me.ClientSize.Height - 220,
-            .BorderStyle = BorderStyle.FixedSingle,
+            .Location = New Point(20, 198),
+            .Height = Me.ClientSize.Height - 270,
+            .BorderStyle = BorderStyle.None,
+            .Padding = New Padding(8),
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left
         }
         Me.Controls.Add(pnlDesign)
 
-        pnlDesign.Controls.Add(New Label() With {
-            .Text = "DESIGN TOOLS",
+        ' Panel header with accent left border
+        Dim pnlDesignHeader As New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 32,
-            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
-            .TextAlign = ContentAlignment.MiddleCenter
+            .Height = 36
+        }
+        pnlDesign.Controls.Add(pnlDesignHeader)
+
+        Dim pnlDesignAccent As New Panel() With {
+            .Dock = DockStyle.Left,
+            .Width = 3,
+            .BackColor = Color.FromArgb(0, 180, 255)
+        }
+        pnlDesignHeader.Controls.Add(pnlDesignAccent)
+
+        pnlDesignHeader.Controls.Add(New Label() With {
+            .Text = "  DESIGN TOOLS",
+            .Dock = DockStyle.Fill,
+            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleLeft
         })
 
         pnlDesignContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
         pnlDesign.Controls.Add(pnlDesignContent)
 
-        ' FIX: Make engineering tools panel wider so full button text fits (requested)
         pnlEngineering = New Panel() With {
             .Width = 300,
-            .Location = New Point(Me.ClientSize.Width - 320, 150),
-            .Height = Me.ClientSize.Height - 220,
-            .BorderStyle = BorderStyle.FixedSingle,
+            .Location = New Point(Me.ClientSize.Width - 320, 198),
+            .Height = Me.ClientSize.Height - 270,
+            .BorderStyle = BorderStyle.None,
+            .Padding = New Padding(8),
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Right
         }
         Me.Controls.Add(pnlEngineering)
 
-        pnlEngineering.Controls.Add(New Label() With {
-            .Text = "ENGINEERING TOOLS",
+        ' Panel header with accent left border
+        Dim pnlEngHeader As New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 32,
-            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
-            .TextAlign = ContentAlignment.MiddleCenter
+            .Height = 36
+        }
+        pnlEngineering.Controls.Add(pnlEngHeader)
+
+        Dim pnlEngAccent As New Panel() With {
+            .Dock = DockStyle.Left,
+            .Width = 3,
+            .BackColor = Color.FromArgb(0, 180, 255)
+        }
+        pnlEngHeader.Controls.Add(pnlEngAccent)
+
+        pnlEngHeader.Controls.Add(New Label() With {
+            .Text = "  ENGINEERING TOOLS",
+            .Dock = DockStyle.Fill,
+            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
+            .TextAlign = ContentAlignment.MiddleLeft
         })
 
         pnlEngineeringContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
@@ -399,14 +522,45 @@ Public Class MainForm
     ' FOOTER (OLD UI FROM MainForm - old.txt)
     '========================================================
     Private Sub BuildFooter()
-        lblFooter = New Label() With {
-            .Text = "Registered Name: John Byrne Conveyors & Packaging Services Ltd. T/A CPS",
-            .Font = New Font("Segoe UI", 8, FontStyle.Italic),
-            .AutoSize = True,
-            .Anchor = AnchorStyles.Bottom Or AnchorStyles.Left,
-            .Location = New Point(250, Me.ClientSize.Height - 28)
+        pnlFooter = New Panel() With {
+            .Dock = DockStyle.Bottom,
+            .Height = 32
         }
-        Me.Controls.Add(lblFooter)
+        Me.Controls.Add(pnlFooter)
+
+        pnlFooterBorder = New Panel() With {
+            .Dock = DockStyle.Top,
+            .Height = 1,
+            .BackColor = Color.FromArgb(60, 0, 180, 255)
+        }
+        pnlFooter.Controls.Add(pnlFooterBorder)
+
+        lblFooterLeft = New Label() With {
+            .Text = "Registered Name: John Byrne Conveyors & Packaging Services Ltd. T/A CPS",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .AutoSize = True,
+            .Location = New Point(10, 8)
+        }
+        pnlFooter.Controls.Add(lblFooterLeft)
+
+        lblFooterRight = New Label() With {
+            .Text = "MDAT v1.0 | © 2026 MetaMech Solutions",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .ForeColor = Color.FromArgb(120, 140, 170),
+            .AutoSize = True,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        }
+        pnlFooter.Controls.Add(lblFooterRight)
+        lblFooterRight.Location = New Point(pnlFooter.Width - lblFooterRight.Width - 15, 8)
+
+        AddHandler pnlFooter.Resize, Sub(s As Object, ev As EventArgs)
+                                          If lblFooterRight IsNot Nothing Then
+                                              lblFooterRight.Location = New Point(pnlFooter.Width - lblFooterRight.Width - 15, 8)
+                                          End If
+                                      End Sub
+
+        ' Keep old field for backward compat (hidden)
+        lblFooter = lblFooterLeft
     End Sub
 
     '========================================================
@@ -1131,21 +1285,42 @@ Public Class MainForm
         b.Tag = slot
         b.Name = "btnTool_" & slot.ToString()
 
-        b.Location = New Point(18, y)
-        b.Size = New Size(parent.Width - 36, 34)
+        b.Location = New Point(8, y)
+        b.Size = New Size(parent.Width - 16, 42)
 
         b.FlatStyle = FlatStyle.Flat
-        b.FlatAppearance.BorderSize = 1
-        b.FlatAppearance.BorderColor = Color.FromArgb(150, 90, 190)
-
-        b.BackColor = Color.FromArgb(40, 45, 58)
-        b.ForeColor = Color.White
-
-        ' Slightly smaller font so long engineering tool names fit cleanly
-        b.Font = New Font("Segoe UI", 9.0F, FontStyle.Bold)
+        b.FlatAppearance.BorderSize = 0
+        b.Font = New Font("Segoe UI Semibold", 9.5F, FontStyle.Bold)
+        b.Cursor = Cursors.Hand
 
         AddHandler b.Click, clickHandler
+        AddHandler b.MouseEnter, AddressOf ToolButton_MouseEnter
+        AddHandler b.MouseLeave, AddressOf ToolButton_MouseLeave
         parent.Controls.Add(b)
+    End Sub
+
+    Private Sub ToolButton_MouseEnter(sender As Object, e As EventArgs)
+        Dim b As Button = TryCast(sender, Button)
+        If b Is Nothing Then Return
+        If b Is selectedButton Then Return
+        If Not b.Enabled Then Return
+        If currentThemeIsDark Then
+            b.BackColor = Color.FromArgb(30, 58, 95)
+        Else
+            b.BackColor = Color.FromArgb(232, 244, 253)
+        End If
+    End Sub
+
+    Private Sub ToolButton_MouseLeave(sender As Object, e As EventArgs)
+        Dim b As Button = TryCast(sender, Button)
+        If b Is Nothing Then Return
+        If b Is selectedButton Then Return
+        If Not b.Enabled Then Return
+        If currentThemeIsDark Then
+            b.BackColor = Color.FromArgb(22, 44, 69)
+        Else
+            b.BackColor = Color.FromArgb(248, 249, 250)
+        End If
     End Sub
 
     '========================================================
@@ -1155,21 +1330,21 @@ Public Class MainForm
         pnlDesignContent.Controls.Clear()
         pnlEngineeringContent.Controls.Clear()
 
-        Dim y As Integer = 60
+        Dim y As Integer = 10
         For i As Integer = 1 To 10
             If macroDisplayMap.ContainsKey(i) Then
                 AddButton(pnlDesignContent, macroDisplayMap(i), i, y, AddressOf RunDesignTool)
-                y += 40
+                y += 48
             End If
         Next
 
-        y = 60
+        y = 10
         AddButton(pnlEngineeringContent, "CONVEYOR CALCULATOR", 11, y, AddressOf RunEngineeringTool)
-        y += 40
+        y += 48
         AddButton(pnlEngineeringContent, "PNEUMATIC CALCULATOR", 12, y, AddressOf RunEngineeringTool)
-        y += 40
+        y += 48
         AddButton(pnlEngineeringContent, "AIR CONSUMPTION & COMPRESSOR SIZING", 13, y, AddressOf RunEngineeringTool)
-        y += 40
+        y += 48
         AddButton(pnlEngineeringContent, "BEAM DEFLECTION & FRAME CHECK", 14, y, AddressOf RunEngineeringTool)
     End Sub
 
@@ -1551,10 +1726,30 @@ Public Class MainForm
         Catch
         End Try
 
-        ' Override header-specific styling
+        ' Override header — ALWAYS dark regardless of theme
         Try
-            pnlHeader.BackColor = If(currentThemeIsDark, UITheme.HeaderBg, panel)
-            pnlHeaderLine.BackColor = customAccent
+            pnlHeader.BackColor = Color.FromArgb(15, 23, 42)
+            pnlHeaderLine.BackColor = Color.FromArgb(0, 180, 255)
+            lblTitle.ForeColor = Color.White
+            lblTitle.BackColor = Color.Transparent
+            lblSubtitle.ForeColor = Color.FromArgb(169, 199, 232)
+            lblSubtitle.BackColor = Color.Transparent
+            If lblVersion IsNot Nothing Then
+                lblVersion.ForeColor = Color.FromArgb(120, 140, 170)
+                lblVersion.BackColor = Color.Transparent
+            End If
+
+            ' Header buttons always white on dark
+            btnTheme.ForeColor = Color.White
+            btnTheme.BackColor = Color.FromArgb(15, 23, 42)
+            btnTheme.FlatAppearance.BorderSize = 0
+            btnLicense.ForeColor = Color.White
+            btnLicense.BackColor = Color.FromArgb(15, 23, 42)
+            btnLicense.FlatAppearance.BorderSize = 0
+
+            lblLicence.ForeColor = Color.White
+            lblLicence.BackColor = Color.Transparent
+            lblValidity.BackColor = Color.Transparent
 
             ' Update theme button text
             If btnTheme IsNot Nothing Then
@@ -1563,9 +1758,90 @@ Public Class MainForm
         Catch
         End Try
 
+        ' Override log — always dark console
+        Try
+            txtLog.BackColor = Color.FromArgb(22, 27, 34)
+            txtLog.ForeColor = Color.FromArgb(200, 210, 220)
+            If lblLogHeader IsNot Nothing Then
+                lblLogHeader.ForeColor = Color.FromArgb(120, 140, 170)
+            End If
+        Catch
+        End Try
+
+        ' Override side panel backgrounds
+        Try
+            pnlDesign.BackColor = panel
+            pnlEngineering.BackColor = panel
+        Catch
+        End Try
+
+        ' Override footer
+        Try
+            If pnlFooter IsNot Nothing Then
+                pnlFooter.BackColor = If(currentThemeIsDark, Color.FromArgb(10, 25, 41), Color.FromArgb(240, 242, 245))
+                If lblFooterLeft IsNot Nothing Then
+                    lblFooterLeft.ForeColor = If(currentThemeIsDark, Color.FromArgb(169, 199, 232), Color.FromArgb(80, 90, 100))
+                End If
+                If lblFooterRight IsNot Nothing Then
+                    lblFooterRight.ForeColor = Color.FromArgb(120, 140, 170)
+                End If
+            End If
+        Catch
+        End Try
+
+        ' Override button colors for premium look
+        Try
+            For Each c As Control In pnlDesignContent.Controls
+                Dim b As Button = TryCast(c, Button)
+                If b Is Nothing OrElse Not b.Enabled Then Continue For
+                If b Is selectedButton Then
+                    b.BackColor = Color.FromArgb(0, 180, 255)
+                    b.ForeColor = Color.White
+                Else
+                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(248, 249, 250))
+                    b.ForeColor = If(currentThemeIsDark, Color.FromArgb(234, 244, 255), Color.FromArgb(26, 26, 46))
+                End If
+                b.FlatStyle = FlatStyle.Flat
+                b.FlatAppearance.BorderSize = 0
+            Next
+
+            For Each c As Control In pnlEngineeringContent.Controls
+                Dim b As Button = TryCast(c, Button)
+                If b Is Nothing OrElse Not b.Enabled Then Continue For
+                If b Is selectedButton Then
+                    b.BackColor = Color.FromArgb(0, 180, 255)
+                    b.ForeColor = Color.White
+                Else
+                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(248, 249, 250))
+                    b.ForeColor = If(currentThemeIsDark, Color.FromArgb(234, 244, 255), Color.FromArgb(26, 26, 46))
+                End If
+                b.FlatStyle = FlatStyle.Flat
+                b.FlatAppearance.BorderSize = 0
+            Next
+        Catch
+        End Try
+
+        ' Select assembly button always accent
+        Try
+            If btnSelectFile IsNot Nothing Then
+                btnSelectFile.BackColor = Color.FromArgb(0, 180, 255)
+                btnSelectFile.ForeColor = Color.White
+                btnSelectFile.FlatStyle = FlatStyle.Flat
+                btnSelectFile.FlatAppearance.BorderSize = 0
+            End If
+        Catch
+        End Try
+
+        ' Section labels always muted
+        Try
+            If lblSwVersion IsNot Nothing Then lblSwVersion.ForeColor = Color.FromArgb(120, 140, 170)
+            If lblAssembly IsNot Nothing Then lblAssembly.ForeColor = Color.FromArgb(120, 140, 170)
+        Catch
+        End Try
+
         Try
             If licenseValid Then
-                lblLicence.ForeColor = If(currentThemeIsDark, Color.White, Color.Black)
+                lblLicence.ForeColor = Color.White
             End If
         Catch
         End Try
