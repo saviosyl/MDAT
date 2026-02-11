@@ -7,7 +7,7 @@ Public Class PdfQuoteForm
 
     Public Sub New()
         Me.Text = "Export Engineering Report (PDF)"
-        Me.Size = New Size(420, 370)
+        Me.Size = New Size(420, 490)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -15,7 +15,6 @@ Public Class PdfQuoteForm
         Me.ForeColor = Color.White
         Me.Font = New Font("Segoe UI", 9)
 
-        FormFooter.AddPremiumFooter(Me)
         FormHeader.AddPremiumHeader(Me, "PDF Quote Generator", "MetaMech Engineering Tools")
 
         Dim lbl As New Label()

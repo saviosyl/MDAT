@@ -16,11 +16,10 @@ Public Class EngineeringNotepadForm
     Private Sub InitializeComponent()
 
         Me.Text = "Engineering Notepad"
-        Me.Size = New Size(900, 700)
+        Me.Size = New Size(900, 820)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = UITheme.BG_MAIN
 
-        FormFooter.AddPremiumFooter(Me)
         FormHeader.AddPremiumHeader(Me, "Engineering Notepad", "MetaMech Engineering Tools")
 
         '================ TOOLBAR =================

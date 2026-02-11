@@ -10,7 +10,7 @@ Public Class AboutForm
 
     Public Sub New()
         Me.Text = "About " & UITheme.AppName
-        Me.Size = New Size(520, 430)
+        Me.Size = New Size(520, 550)
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.StartPosition = FormStartPosition.CenterParent
         Me.MaximizeBox = False

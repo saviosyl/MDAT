@@ -62,10 +62,9 @@ Public Class AirConsumptionForm
         Me.Text = "Air Consumption & Compressor Sizing"
         Me.StartPosition = FormStartPosition.CenterParent
         Me.Font = New Font("Segoe UI", 9.5F, FontStyle.Regular)
-        Me.MinimumSize = New Size(1050, 730)
-        Me.Size = New Size(1180, 800)
+        Me.MinimumSize = New Size(1050, 850)
+        Me.Size = New Size(1180, 920)
 
-        FormFooter.AddPremiumFooter(Me)
 
         tip = New ToolTip()
         tip.AutoPopDelay = 12000

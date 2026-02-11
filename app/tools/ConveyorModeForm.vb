@@ -33,11 +33,10 @@ Public Class ConveyorModeForm
     '====================================================
     Public Sub New()
         Me.Text = "Conveyor Calculator"
-        Me.Size = New Size(1050, 800)
+        Me.Size = New Size(1050, 920)
         Me.BackColor = BG
         Me.StartPosition = FormStartPosition.CenterParent
 
-        FormFooter.AddPremiumFooter(Me)
         BuildUI()
         FormHeader.AddPremiumHeader(Me, "Conveyor Mode Selection", "MetaMech Engineering Tools")
     End Sub

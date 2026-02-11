@@ -15,12 +15,11 @@ Public Class CalcForm
     Public Sub New()
 
         Me.Text = "Engineering Calculator"
-        Me.Size = New Size(300, 330)
+        Me.Size = New Size(300, 450)
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.StartPosition = FormStartPosition.CenterParent
 
-        FormFooter.AddPremiumFooter(Me)
         FormHeader.AddPremiumHeader(Me, "Engineering Calculator", "MetaMech Engineering Tools")
 
         txtA = New TextBox()

@@ -7,7 +7,7 @@ Public Class MotorPowerForm
 
     Public Sub New()
         Me.Text = "Motor Power Calculator"
-        Me.Size = New Size(420, 370)
+        Me.Size = New Size(420, 490)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -15,7 +15,6 @@ Public Class MotorPowerForm
         Me.ForeColor = Color.White
         Me.Font = New Font("Segoe UI", 9)
 
-        FormFooter.AddPremiumFooter(Me)
         FormHeader.AddPremiumHeader(Me, "Motor Power Calculator", "MetaMech Engineering Tools")
 
         Dim lbl As New Label()

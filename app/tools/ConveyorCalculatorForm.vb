@@ -115,13 +115,12 @@ Public Class ConveyorCalculatorForm
     ' ============================================================
     Public Sub New()
         Me.Text = "Conveyor Calculator"
-        Me.Size = New Size(1180, 800)
+        Me.Size = New Size(1180, 920)
         Me.StartPosition = FormStartPosition.CenterParent
 
         ' Start with defaults (dark) if opened standalone
         Me.BackColor = themeBG
 
-        FormFooter.AddPremiumFooter(Me)
         BuildUI()
         FormHeader.AddPremiumHeader(Me, "Conveyor Calculator", "MetaMech Engineering Tools")
 

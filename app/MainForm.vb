@@ -262,8 +262,8 @@ Public Class MainForm
         Me.Controls.Add(pnlHeader)
 
         picLogo = New PictureBox() With {
-            .Size = New Size(200, 90),
-            .Location = New Point(20, 10),
+            .Size = New Size(220, 95),
+            .Location = New Point(10, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -287,7 +287,7 @@ Public Class MainForm
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 15, 18)
+            .Location = New Point(picLogo.Right + 10, 15)
         }
         pnlHeader.Controls.Add(lblTitle)
 
@@ -297,7 +297,7 @@ Public Class MainForm
             .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 15, 58)
+            .Location = New Point(picLogo.Right + 10, 50)
         }
         pnlHeader.Controls.Add(lblSubtitle)
 
@@ -324,7 +324,7 @@ Public Class MainForm
         pnlHeader.Controls.Add(btnTheme)
 
         btnLicense = New Button() With {
-            .Text = "LICENSE ▾",
+            .Text = "LICENSE",
             .Size = New Size(90, 28),
             .FlatStyle = FlatStyle.Flat,
             .ForeColor = Color.White,
@@ -365,15 +365,21 @@ Public Class MainForm
     Private Sub HeaderResize(sender As Object, e As EventArgs)
         If pnlHeader Is Nothing Then Return
 
-        btnTheme.Location = New Point(pnlHeader.Width - 110, 15)
-        btnLicense.Location = New Point(pnlHeader.Width - 210, 15)
+        btnLicense.Location = New Point(pnlHeader.Width - 130, 12)
+        btnTheme.Location = New Point(pnlHeader.Width - 130, 44)
+
+        lblLicence.Location = New Point(pnlHeader.Width - 350, 15)
+        lblLicence.ForeColor = Color.White
+        lblLicence.BackColor = Color.Transparent
+
+        lblValidity.Location = New Point(pnlHeader.Width - 350, 35)
+        lblValidity.BackColor = Color.Transparent
 
         If lblVersion IsNot Nothing Then
-            lblVersion.Location = New Point(pnlHeader.Width - 50, 85)
+            lblVersion.Location = New Point(pnlHeader.Width - 350, 58)
+            lblVersion.ForeColor = Color.FromArgb(120, 140, 170)
+            lblVersion.BackColor = Color.Transparent
         End If
-
-        lblLicence.Location = New Point(pnlHeader.Width - 260, 52)
-        lblValidity.Location = New Point(pnlHeader.Width - 260, 72)
     End Sub
 
     '========================================================
@@ -435,8 +441,8 @@ Public Class MainForm
             .Multiline = True,
             .ReadOnly = True,
             .ScrollBars = ScrollBars.Vertical,
-            .BackColor = Color.FromArgb(36, 41, 51),
-            .ForeColor = Color.FromArgb(220, 225, 230),
+            .BackColor = Color.FromArgb(240, 242, 245),
+            .ForeColor = Color.FromArgb(26, 26, 46),
             .Font = New Font("Consolas", 9.5F),
             .BorderStyle = BorderStyle.None,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
@@ -460,10 +466,15 @@ Public Class MainForm
         }
         Me.Controls.Add(pnlDesign)
 
-        ' Panel header with accent left border
+        ' Content panel FIRST (dock fill must be added before dock top)
+        pnlDesignContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlDesign.Controls.Add(pnlDesignContent)
+
+        ' Panel header with accent left border — added AFTER content (dock top renders on top)
         Dim pnlDesignHeader As New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 36
+            .Height = 40,
+            .BackColor = Color.FromArgb(15, 23, 42)
         }
         pnlDesign.Controls.Add(pnlDesignHeader)
 
@@ -474,15 +485,22 @@ Public Class MainForm
         }
         pnlDesignHeader.Controls.Add(pnlDesignAccent)
 
+        ' 1px bottom accent border
+        Dim pnlDesignBottomLine As New Panel() With {
+            .Dock = DockStyle.Bottom,
+            .Height = 1,
+            .BackColor = Color.FromArgb(0, 180, 255)
+        }
+        pnlDesignHeader.Controls.Add(pnlDesignBottomLine)
+
         pnlDesignHeader.Controls.Add(New Label() With {
             .Text = "  DESIGN TOOLS",
             .Dock = DockStyle.Fill,
-            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
+            .Font = New Font("Segoe UI Semibold", 10, FontStyle.Bold),
+            .ForeColor = Color.White,
+            .BackColor = Color.Transparent,
             .TextAlign = ContentAlignment.MiddleLeft
         })
-
-        pnlDesignContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
-        pnlDesign.Controls.Add(pnlDesignContent)
 
         pnlEngineering = New Panel() With {
             .Width = 300,
@@ -494,10 +512,15 @@ Public Class MainForm
         }
         Me.Controls.Add(pnlEngineering)
 
-        ' Panel header with accent left border
+        ' Content panel FIRST (dock fill must be added before dock top)
+        pnlEngineeringContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
+        pnlEngineering.Controls.Add(pnlEngineeringContent)
+
+        ' Panel header — added AFTER content (dock top renders on top)
         Dim pnlEngHeader As New Panel() With {
             .Dock = DockStyle.Top,
-            .Height = 36
+            .Height = 40,
+            .BackColor = Color.FromArgb(15, 23, 42)
         }
         pnlEngineering.Controls.Add(pnlEngHeader)
 
@@ -508,15 +531,22 @@ Public Class MainForm
         }
         pnlEngHeader.Controls.Add(pnlEngAccent)
 
+        ' 1px bottom accent border
+        Dim pnlEngBottomLine As New Panel() With {
+            .Dock = DockStyle.Bottom,
+            .Height = 1,
+            .BackColor = Color.FromArgb(0, 180, 255)
+        }
+        pnlEngHeader.Controls.Add(pnlEngBottomLine)
+
         pnlEngHeader.Controls.Add(New Label() With {
             .Text = "  ENGINEERING TOOLS",
             .Dock = DockStyle.Fill,
-            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
+            .Font = New Font("Segoe UI Semibold", 10, FontStyle.Bold),
+            .ForeColor = Color.White,
+            .BackColor = Color.Transparent,
             .TextAlign = ContentAlignment.MiddleLeft
         })
-
-        pnlEngineeringContent = New Panel() With {.Dock = DockStyle.Fill, .AutoScroll = True}
-        pnlEngineering.Controls.Add(pnlEngineeringContent)
     End Sub
 
     '========================================================
@@ -1333,7 +1363,10 @@ Public Class MainForm
         b.Size = New Size(parent.Width - 16, 42)
 
         b.FlatStyle = FlatStyle.Flat
-        b.FlatAppearance.BorderSize = 0
+        b.FlatAppearance.BorderSize = 1
+        b.FlatAppearance.BorderColor = If(currentThemeIsDark, Color.FromArgb(30, 50, 75), Color.FromArgb(200, 210, 220))
+        b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(232, 236, 240))
+        b.ForeColor = If(currentThemeIsDark, Color.FromArgb(234, 244, 255), Color.FromArgb(26, 26, 46))
         b.Font = New Font("Segoe UI Semibold", 9.5F, FontStyle.Bold)
         b.Cursor = Cursors.Hand
 
@@ -1351,7 +1384,7 @@ Public Class MainForm
         If currentThemeIsDark Then
             b.BackColor = Color.FromArgb(30, 58, 95)
         Else
-            b.BackColor = Color.FromArgb(232, 244, 253)
+            b.BackColor = Color.FromArgb(208, 228, 244)
         End If
     End Sub
 
@@ -1363,7 +1396,7 @@ Public Class MainForm
         If currentThemeIsDark Then
             b.BackColor = Color.FromArgb(22, 44, 69)
         Else
-            b.BackColor = Color.FromArgb(248, 249, 250)
+            b.BackColor = Color.FromArgb(232, 236, 240)
         End If
     End Sub
 
@@ -1802,10 +1835,15 @@ Public Class MainForm
         Catch
         End Try
 
-        ' Override log — always dark console (softer look)
+        ' Override log — theme-aware
         Try
-            txtLog.BackColor = Color.FromArgb(36, 41, 51)
-            txtLog.ForeColor = Color.FromArgb(220, 225, 230)
+            If currentThemeIsDark Then
+                txtLog.BackColor = Color.FromArgb(30, 38, 50)
+                txtLog.ForeColor = Color.FromArgb(212, 220, 232)
+            Else
+                txtLog.BackColor = Color.FromArgb(240, 242, 245)
+                txtLog.ForeColor = Color.FromArgb(26, 26, 46)
+            End If
             If lblLogHeader IsNot Nothing Then
                 lblLogHeader.ForeColor = Color.FromArgb(150, 165, 185)
             End If
@@ -1835,6 +1873,7 @@ Public Class MainForm
 
         ' Override button colors for premium look
         Try
+            Dim btnBorderCol As Color = If(currentThemeIsDark, Color.FromArgb(30, 50, 75), Color.FromArgb(200, 210, 220))
             For Each c As Control In pnlDesignContent.Controls
                 Dim b As Button = TryCast(c, Button)
                 If b Is Nothing OrElse Not b.Enabled Then Continue For
@@ -1842,11 +1881,12 @@ Public Class MainForm
                     b.BackColor = Color.FromArgb(0, 180, 255)
                     b.ForeColor = Color.White
                 Else
-                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(248, 249, 250))
+                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(232, 236, 240))
                     b.ForeColor = If(currentThemeIsDark, Color.FromArgb(234, 244, 255), Color.FromArgb(26, 26, 46))
                 End If
                 b.FlatStyle = FlatStyle.Flat
-                b.FlatAppearance.BorderSize = 0
+                b.FlatAppearance.BorderSize = 1
+                b.FlatAppearance.BorderColor = btnBorderCol
             Next
 
             For Each c As Control In pnlEngineeringContent.Controls
@@ -1856,11 +1896,12 @@ Public Class MainForm
                     b.BackColor = Color.FromArgb(0, 180, 255)
                     b.ForeColor = Color.White
                 Else
-                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(248, 249, 250))
+                    b.BackColor = If(currentThemeIsDark, Color.FromArgb(22, 44, 69), Color.FromArgb(232, 236, 240))
                     b.ForeColor = If(currentThemeIsDark, Color.FromArgb(234, 244, 255), Color.FromArgb(26, 26, 46))
                 End If
                 b.FlatStyle = FlatStyle.Flat
-                b.FlatAppearance.BorderSize = 0
+                b.FlatAppearance.BorderSize = 1
+                b.FlatAppearance.BorderColor = btnBorderCol
             Next
         Catch
         End Try

@@ -149,14 +149,13 @@ Public Class PneumaticCylinderCalculatorForm
     ' ============================================================
     Public Sub New()
         Me.Text = "Pneumatic Cylinder Calculator"
-        Me.Size = New Size(1180, 800)
-        Me.MinimumSize = New Size(980, 700)
+        Me.Size = New Size(1180, 920)
+        Me.MinimumSize = New Size(980, 820)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.FormBorderStyle = FormBorderStyle.Sizable
         Me.MaximizeBox = True
         Me.BackColor = themeBG
 
-        FormFooter.AddPremiumFooter(Me)
         BuildUI()
         FormHeader.AddPremiumHeader(Me, "Pneumatic Cylinder Calculator", "MetaMech Engineering Tools")
 

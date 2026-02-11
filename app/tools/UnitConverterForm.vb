@@ -16,10 +16,9 @@ Public Class UnitConverterForm
 
     Public Sub New()
         Me.Text = "Engineering Unit Converter"
-        Me.Size = New Size(480, 420)
+        Me.Size = New Size(480, 540)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.BackColor = Color.FromArgb(20, 24, 32)
-        FormFooter.AddPremiumFooter(Me)
         BuildUI()
         FormHeader.AddPremiumHeader(Me, "Unit Converter", "MetaMech Engineering Tools")
     End Sub

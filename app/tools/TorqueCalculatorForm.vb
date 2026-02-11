@@ -7,7 +7,7 @@ Public Class TorqueCalculatorForm
 
     Public Sub New()
         Me.Text = "Torque Calculator"
-        Me.Size = New Size(420, 370)
+        Me.Size = New Size(420, 490)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -15,7 +15,6 @@ Public Class TorqueCalculatorForm
         Me.ForeColor = Color.White
         Me.Font = New Font("Segoe UI", 9)
 
-        FormFooter.AddPremiumFooter(Me)
         FormHeader.AddPremiumHeader(Me, "Torque Calculator", "MetaMech Engineering Tools")
 
         Dim lbl As New Label()
