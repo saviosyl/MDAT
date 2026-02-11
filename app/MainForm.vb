@@ -263,7 +263,7 @@ Public Class MainForm
 
         picLogo = New PictureBox() With {
             .Size = New Size(220, 95),
-            .Location = New Point(10, 8),
+            .Location = New Point(5, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -287,7 +287,7 @@ Public Class MainForm
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 10, 15)
+            .Location = New Point(picLogo.Right + 8, 18)
         }
         pnlHeader.Controls.Add(lblTitle)
 
@@ -297,7 +297,7 @@ Public Class MainForm
             .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 10, 50)
+            .Location = New Point(picLogo.Right + 8, 52)
         }
         pnlHeader.Controls.Add(lblSubtitle)
 
@@ -312,26 +312,30 @@ Public Class MainForm
 
         btnTheme = New Button() With {
             .Text = "🌙 DARK",
-            .Size = New Size(90, 28),
+            .Size = New Size(85, 26),
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
             .FlatStyle = FlatStyle.Flat,
             .ForeColor = Color.White,
             .BackColor = Color.FromArgb(15, 23, 42),
             .Cursor = Cursors.Hand
         }
-        btnTheme.FlatAppearance.BorderSize = 0
+        btnTheme.FlatAppearance.BorderSize = 1
+        btnTheme.FlatAppearance.BorderColor = Color.FromArgb(60, 80, 110)
         btnTheme.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 40, 60)
         AddHandler btnTheme.Click, AddressOf ShowThemeMenu
         pnlHeader.Controls.Add(btnTheme)
 
         btnLicense = New Button() With {
             .Text = "LICENSE",
-            .Size = New Size(90, 28),
+            .Size = New Size(85, 26),
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
             .FlatStyle = FlatStyle.Flat,
             .ForeColor = Color.White,
             .BackColor = Color.FromArgb(15, 23, 42),
             .Cursor = Cursors.Hand
         }
-        btnLicense.FlatAppearance.BorderSize = 0
+        btnLicense.FlatAppearance.BorderSize = 1
+        btnLicense.FlatAppearance.BorderColor = Color.FromArgb(60, 80, 110)
         btnLicense.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 40, 60)
         AddHandler btnLicense.Click, AddressOf ShowLicensePopup
         pnlHeader.Controls.Add(btnLicense)
@@ -346,7 +350,7 @@ Public Class MainForm
 
         lblValidity = New Label() With {
             .Font = New Font("Segoe UI", 8),
-            .ForeColor = Color.White,
+            .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True
         }
@@ -365,20 +369,34 @@ Public Class MainForm
     Private Sub HeaderResize(sender As Object, e As EventArgs)
         If pnlHeader Is Nothing Then Return
 
-        btnLicense.Location = New Point(pnlHeader.Width - 130, 12)
-        btnTheme.Location = New Point(pnlHeader.Width - 130, 44)
+        Dim rightMargin As Integer = 20
 
-        lblLicence.Location = New Point(pnlHeader.Width - 350, 15)
-        lblLicence.ForeColor = Color.White
-        lblLicence.BackColor = Color.Transparent
+        ' Row 1: lblLicence
+        If lblLicence IsNot Nothing Then
+            lblLicence.Location = New Point(pnlHeader.Width - lblLicence.Width - rightMargin, 10)
+            lblLicence.ForeColor = Color.White
+            lblLicence.BackColor = Color.Transparent
+        End If
 
-        lblValidity.Location = New Point(pnlHeader.Width - 350, 35)
-        lblValidity.BackColor = Color.Transparent
+        ' Row 2: lblValidity
+        If lblValidity IsNot Nothing Then
+            lblValidity.Location = New Point(pnlHeader.Width - lblValidity.Width - rightMargin, 30)
+            lblValidity.BackColor = Color.Transparent
+        End If
 
+        ' Row 3: lblVersion
         If lblVersion IsNot Nothing Then
-            lblVersion.Location = New Point(pnlHeader.Width - 350, 58)
+            lblVersion.Location = New Point(pnlHeader.Width - lblVersion.Width - rightMargin, 50)
             lblVersion.ForeColor = Color.FromArgb(120, 140, 170)
             lblVersion.BackColor = Color.Transparent
+        End If
+
+        ' Row 4: buttons side by side, right-aligned
+        If btnTheme IsNot Nothing Then
+            btnTheme.Location = New Point(pnlHeader.Width - 100, 74)
+        End If
+        If btnLicense IsNot Nothing Then
+            btnLicense.Location = New Point(pnlHeader.Width - 195, 74)
         End If
     End Sub
 
@@ -442,7 +460,7 @@ Public Class MainForm
             .ReadOnly = True,
             .ScrollBars = ScrollBars.Vertical,
             .BackColor = Color.FromArgb(240, 242, 245),
-            .ForeColor = Color.FromArgb(26, 26, 46),
+            .ForeColor = Color.FromArgb(20, 20, 20),
             .Font = New Font("Consolas", 9.5F),
             .BorderStyle = BorderStyle.None,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
@@ -494,12 +512,12 @@ Public Class MainForm
         pnlDesignHeader.Controls.Add(pnlDesignBottomLine)
 
         pnlDesignHeader.Controls.Add(New Label() With {
-            .Text = "  DESIGN TOOLS",
+            .Text = "DESIGN TOOLS",
             .Dock = DockStyle.Fill,
-            .Font = New Font("Segoe UI Semibold", 10, FontStyle.Bold),
+            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
-            .TextAlign = ContentAlignment.MiddleLeft
+            .TextAlign = ContentAlignment.MiddleCenter
         })
 
         pnlEngineering = New Panel() With {
@@ -540,12 +558,12 @@ Public Class MainForm
         pnlEngHeader.Controls.Add(pnlEngBottomLine)
 
         pnlEngHeader.Controls.Add(New Label() With {
-            .Text = "  ENGINEERING TOOLS",
+            .Text = "ENGINEERING TOOLS",
             .Dock = DockStyle.Fill,
-            .Font = New Font("Segoe UI Semibold", 10, FontStyle.Bold),
+            .Font = New Font("Segoe UI", 11, FontStyle.Bold),
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
-            .TextAlign = ContentAlignment.MiddleLeft
+            .TextAlign = ContentAlignment.MiddleCenter
         })
     End Sub
 
@@ -1819,10 +1837,12 @@ Public Class MainForm
             ' Header buttons always white on dark
             btnTheme.ForeColor = Color.White
             btnTheme.BackColor = Color.FromArgb(15, 23, 42)
-            btnTheme.FlatAppearance.BorderSize = 0
+            btnTheme.FlatAppearance.BorderSize = 1
+            btnTheme.FlatAppearance.BorderColor = Color.FromArgb(60, 80, 110)
             btnLicense.ForeColor = Color.White
             btnLicense.BackColor = Color.FromArgb(15, 23, 42)
-            btnLicense.FlatAppearance.BorderSize = 0
+            btnLicense.FlatAppearance.BorderSize = 1
+            btnLicense.FlatAppearance.BorderColor = Color.FromArgb(60, 80, 110)
 
             lblLicence.ForeColor = Color.White
             lblLicence.BackColor = Color.Transparent
@@ -1839,10 +1859,10 @@ Public Class MainForm
         Try
             If currentThemeIsDark Then
                 txtLog.BackColor = Color.FromArgb(30, 38, 50)
-                txtLog.ForeColor = Color.FromArgb(212, 220, 232)
+                txtLog.ForeColor = Color.FromArgb(220, 225, 230)
             Else
                 txtLog.BackColor = Color.FromArgb(240, 242, 245)
-                txtLog.ForeColor = Color.FromArgb(26, 26, 46)
+                txtLog.ForeColor = Color.FromArgb(20, 20, 20)
             End If
             If lblLogHeader IsNot Nothing Then
                 lblLogHeader.ForeColor = Color.FromArgb(150, 165, 185)

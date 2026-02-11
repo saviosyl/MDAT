@@ -185,6 +185,24 @@ if not exist "%APP_DIR%\TelemetryService.vb" (
 echo [OK] Telemetry files found
 echo.
 
+REM ------------------------------------------------------------
+REM GENERATE EXE ICON FROM LOGO PNG
+REM ------------------------------------------------------------
+echo ============================================================
+echo [STEP] Generating EXE icon from logo
+echo ============================================================
+set "ICO_PATH=%OUTPUT_DIR%\assets\logo\app.ico"
+set "ICO_FLAG="
+powershell -NoProfile -Command "try { Add-Type -AssemblyName System.Drawing; $bmp = [System.Drawing.Bitmap]::new('%OUTPUT_DIR%\assets\logo\logo.png'); $ico = [System.Drawing.Icon]::FromHandle($bmp.GetHicon()); $fs = [System.IO.File]::Create('%ICO_PATH%'); $ico.Save($fs); $fs.Close(); $ico.Dispose(); $bmp.Dispose(); Write-Host '[OK] Icon generated' } catch { Write-Host '[SKIP] Icon generation failed' }" 2>nul
+if exist "%ICO_PATH%" (
+  set "ICO_FLAG=/win32icon:"%ICO_PATH%""
+  echo [OK] Will embed icon: %ICO_PATH%
+) else (
+  echo [SKIP] No icon file — EXE will use default icon
+  echo To add EXE icon: convert logo.png to app.ico (256x256, 48x48, 32x32, 16x16)
+)
+echo.
+
 REM ============================================================
 REM BUILD MAIN APPLICATION
 REM ============================================================
@@ -208,8 +226,10 @@ echo.
  /reference:"System.Windows.Forms.dll" ^
  /reference:"System.Security.dll" ^
  /out:"%OUT_EXE%" ^
+ %ICO_FLAG% ^
  "%APP_DIR%\Program.vb" ^
  "%APP_DIR%\MainForm.vb" ^
+ "%APP_DIR%\SplashForm.vb" ^
  "%APP_DIR%\SeatEnforcer.vb" ^
  "%APP_DIR%\SeatServerClient.vb" ^
  "%APP_DIR%\SeatCache.vb" ^

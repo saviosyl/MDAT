@@ -116,6 +116,7 @@ Public Class ConveyorCalculatorForm
     Public Sub New()
         Me.Text = "Conveyor Calculator"
         Me.Size = New Size(1180, 920)
+        Me.MinimumSize = New Size(900, 700)
         Me.StartPosition = FormStartPosition.CenterParent
 
         ' Start with defaults (dark) if opened standalone
@@ -200,12 +201,14 @@ Public Class ConveyorCalculatorForm
         pnlInput.Size = New Size(360, 660)
         pnlInput.BackColor = themePanel
         pnlInput.AutoScroll = True
+        pnlInput.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left
         Me.Controls.Add(pnlInput)
 
         pnlResults = New Panel()
         pnlResults.Location = New Point(390, 10)
         pnlResults.Size = New Size(770, 660)
         pnlResults.BackColor = themeBG
+        pnlResults.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         Me.Controls.Add(pnlResults)
 
         Dim y As Integer = 15
@@ -295,12 +298,15 @@ Public Class ConveyorCalculatorForm
         pnlInput.Controls.Add(btnReset)
 
         txtFinal = AddOutputText("FINAL RESULTS", 10, 200)
+        txtFinal.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         txtCalc = AddOutputText("CALCULATION METHOD (STEP-BY-STEP)", 240, 200)
+        txtCalc.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
 
         AddOutputLabel("WARNINGS / ERRORS", 470)
         rtbWarn = New RichTextBox()
         rtbWarn.Location = New Point(0, 490)
         rtbWarn.Size = New Size(760, 170)
+        rtbWarn.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         rtbWarn.ReadOnly = True
         rtbWarn.BorderStyle = BorderStyle.FixedSingle
         rtbWarn.Multiline = True

@@ -132,8 +132,8 @@ Public Module FormHeader
 
         ' Logo
         Dim picLogo As New PictureBox() With {
-            .Size = New Size(140, 60),
-            .Location = New Point(15, 10),
+            .Size = New Size(170, 65),
+            .Location = New Point(15, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -157,7 +157,7 @@ Public Module FormHeader
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 12, 15)
+            .Location = New Point(picLogo.Right + 10, 12)
         }
         pnlHeader.Controls.Add(lblTitle)
 
@@ -168,7 +168,7 @@ Public Module FormHeader
             .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 12, 45)
+            .Location = New Point(picLogo.Right + 10, 42)
         }
         pnlHeader.Controls.Add(lblSub)
     End Sub
