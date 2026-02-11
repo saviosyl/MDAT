@@ -11,6 +11,7 @@ Imports System.Reflection
 Imports System.Globalization
 Imports System.Net
 Imports System.Threading
+Imports System.Diagnostics
 
 Public Class MainForm
     Inherits Form
@@ -424,7 +425,7 @@ Public Class MainForm
         lblLogHeader = New Label() With {
             .Text = "OUTPUT LOG",
             .Font = New Font("Segoe UI", 8, FontStyle.Regular),
-            .ForeColor = Color.FromArgb(120, 140, 170),
+            .ForeColor = Color.FromArgb(150, 165, 185),
             .AutoSize = True,
             .Location = New Point(250, 180)
         }
@@ -434,8 +435,8 @@ Public Class MainForm
             .Multiline = True,
             .ReadOnly = True,
             .ScrollBars = ScrollBars.Vertical,
-            .BackColor = Color.FromArgb(22, 27, 34),
-            .ForeColor = Color.FromArgb(200, 210, 220),
+            .BackColor = Color.FromArgb(36, 41, 51),
+            .ForeColor = Color.FromArgb(220, 225, 230),
             .Font = New Font("Consolas", 9.5F),
             .BorderStyle = BorderStyle.None,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right,
@@ -553,10 +554,53 @@ Public Class MainForm
         pnlFooter.Controls.Add(lblFooterRight)
         lblFooterRight.Location = New Point(pnlFooter.Width - lblFooterRight.Width - 15, 8)
 
+        ' Website link
+        Dim accentCol As Color = Color.FromArgb(0, 180, 255)
+        Dim lnkSite As New LinkLabel() With {
+            .Text = "metamechsolutions.com",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .LinkColor = accentCol,
+            .ActiveLinkColor = accentCol,
+            .VisitedLinkColor = accentCol,
+            .BackColor = Color.Transparent,
+            .AutoSize = True
+        }
+        AddHandler lnkSite.LinkClicked, Sub(ss As Object, ee As LinkLabelLinkClickedEventArgs)
+                                             Try
+                                                 Process.Start("https://metamechsolutions.com/")
+                                             Catch
+                                             End Try
+                                         End Sub
+        pnlFooter.Controls.Add(lnkSite)
+
+        ' Blog link
+        Dim lnkBlog As New LinkLabel() With {
+            .Text = "Help & Blog",
+            .Font = New Font("Segoe UI", 8, FontStyle.Regular),
+            .LinkColor = accentCol,
+            .ActiveLinkColor = accentCol,
+            .VisitedLinkColor = accentCol,
+            .BackColor = Color.Transparent,
+            .AutoSize = True,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        }
+        AddHandler lnkBlog.LinkClicked, Sub(ss As Object, ee As LinkLabelLinkClickedEventArgs)
+                                             Try
+                                                 Process.Start("https://metamechsolutions.com/blog/")
+                                             Catch
+                                             End Try
+                                         End Sub
+        pnlFooter.Controls.Add(lnkBlog)
+
         AddHandler pnlFooter.Resize, Sub(s As Object, ev As EventArgs)
-                                          If lblFooterRight IsNot Nothing Then
-                                              lblFooterRight.Location = New Point(pnlFooter.Width - lblFooterRight.Width - 15, 8)
-                                          End If
+                                          Try
+                                              If lblFooterRight IsNot Nothing Then
+                                                  lblFooterRight.Location = New Point(pnlFooter.Width - lblFooterRight.Width - 15, 8)
+                                              End If
+                                              lnkSite.Location = New Point((pnlFooter.Width - lnkSite.Width) \ 2, 8)
+                                              lnkBlog.Location = New Point(pnlFooter.Width - lnkBlog.Width - lblFooterRight.Width - 30, 8)
+                                          Catch
+                                          End Try
                                       End Sub
 
         ' Keep old field for backward compat (hidden)
@@ -1758,12 +1802,12 @@ Public Class MainForm
         Catch
         End Try
 
-        ' Override log — always dark console
+        ' Override log — always dark console (softer look)
         Try
-            txtLog.BackColor = Color.FromArgb(22, 27, 34)
-            txtLog.ForeColor = Color.FromArgb(200, 210, 220)
+            txtLog.BackColor = Color.FromArgb(36, 41, 51)
+            txtLog.ForeColor = Color.FromArgb(220, 225, 230)
             If lblLogHeader IsNot Nothing Then
-                lblLogHeader.ForeColor = Color.FromArgb(120, 140, 170)
+                lblLogHeader.ForeColor = Color.FromArgb(150, 165, 185)
             End If
         Catch
         End Try

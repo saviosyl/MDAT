@@ -16,32 +16,12 @@ Public Class EngineeringNotepadForm
     Private Sub InitializeComponent()
 
         Me.Text = "Engineering Notepad"
-        Me.Size = New Size(900, 600)
+        Me.Size = New Size(900, 700)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = UITheme.BG_MAIN
 
-        '================ HEADER =================
-        Dim lblTitle As New Label()
-        lblTitle.Text = "Engineering Notepad"
-        lblTitle.Font = New Font("Segoe UI", 16, FontStyle.Bold)
-        lblTitle.ForeColor = UITheme.TEXT_PRIMARY
-        lblTitle.Location = New Point(20, 15)
-        lblTitle.AutoSize = True
-        Me.Controls.Add(lblTitle)
-
-        Dim lblSub As New Label()
-        lblSub.Text = "Notes • Calculations • Ideas"
-        lblSub.Font = New Font("Segoe UI", 9)
-        lblSub.ForeColor = UITheme.TEXT_MUTED
-        lblSub.Location = New Point(22, 48)
-        lblSub.AutoSize = True
-        Me.Controls.Add(lblSub)
-
-        Dim accent As New Panel()
-        accent.BackColor = UITheme.ACCENT_PRIMARY
-        accent.Location = New Point(0, 80)
-        accent.Size = New Size(Me.Width, 2)
-        Me.Controls.Add(accent)
+        FormFooter.AddPremiumFooter(Me)
+        FormHeader.AddPremiumHeader(Me, "Engineering Notepad", "MetaMech Engineering Tools")
 
         '================ TOOLBAR =================
         Dim pnlToolbar As New Panel()

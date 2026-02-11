@@ -115,13 +115,15 @@ Public Class ConveyorCalculatorForm
     ' ============================================================
     Public Sub New()
         Me.Text = "Conveyor Calculator"
-        Me.Size = New Size(1180, 720)
+        Me.Size = New Size(1180, 800)
         Me.StartPosition = FormStartPosition.CenterParent
 
         ' Start with defaults (dark) if opened standalone
         Me.BackColor = themeBG
 
+        FormFooter.AddPremiumFooter(Me)
         BuildUI()
+        FormHeader.AddPremiumHeader(Me, "Conveyor Calculator", "MetaMech Engineering Tools")
 
         ' Do NOT show any tooltip until user clicks inside the form
         AddHandler Me.MouseDown, AddressOf ArmTipsOnFirstClick

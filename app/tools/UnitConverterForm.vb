@@ -16,33 +16,27 @@ Public Class UnitConverterForm
 
     Public Sub New()
         Me.Text = "Engineering Unit Converter"
-        Me.Size = New Size(480, 320)
+        Me.Size = New Size(480, 420)
         Me.StartPosition = FormStartPosition.CenterParent
         Me.BackColor = Color.FromArgb(20, 24, 32)
+        FormFooter.AddPremiumFooter(Me)
         BuildUI()
+        FormHeader.AddPremiumHeader(Me, "Unit Converter", "MetaMech Engineering Tools")
     End Sub
 
     Private Sub BuildUI()
-
-        Dim lblTitle As New Label()
-        lblTitle.Text = "Unit Converter"
-        lblTitle.Font = New Font("Segoe UI", 14, FontStyle.Bold)
-        lblTitle.ForeColor = Color.White
-        lblTitle.Location = New Point(20, 15)
-        lblTitle.AutoSize = True
-        Me.Controls.Add(lblTitle)
 
         ' ===== CATEGORY =====
         Dim lblCat As New Label()
         lblCat.Text = "Category"
         lblCat.ForeColor = Color.LightGray
-        lblCat.Location = New Point(20, 60)
+        lblCat.Location = New Point(20, 10)
         Me.Controls.Add(lblCat)
 
         cmbCategory = New ComboBox()
         cmbCategory.Items.AddRange(New String() {"Length", "Mass", "Force", "Power"})
         cmbCategory.DropDownStyle = ComboBoxStyle.DropDownList
-        cmbCategory.Location = New Point(20, 80)
+        cmbCategory.Location = New Point(20, 30)
         cmbCategory.Width = 200
         AddHandler cmbCategory.SelectedIndexChanged, AddressOf UpdateUnits
         Me.Controls.Add(cmbCategory)
@@ -51,12 +45,12 @@ Public Class UnitConverterForm
         Dim lblFrom As New Label()
         lblFrom.Text = "From"
         lblFrom.ForeColor = Color.LightGray
-        lblFrom.Location = New Point(20, 120)
+        lblFrom.Location = New Point(20, 70)
         Me.Controls.Add(lblFrom)
 
         cmbFrom = New ComboBox()
         cmbFrom.DropDownStyle = ComboBoxStyle.DropDownList
-        cmbFrom.Location = New Point(20, 140)
+        cmbFrom.Location = New Point(20, 90)
         cmbFrom.Width = 200
         Me.Controls.Add(cmbFrom)
 
@@ -64,12 +58,12 @@ Public Class UnitConverterForm
         Dim lblTo As New Label()
         lblTo.Text = "To"
         lblTo.ForeColor = Color.LightGray
-        lblTo.Location = New Point(240, 120)
+        lblTo.Location = New Point(240, 70)
         Me.Controls.Add(lblTo)
 
         cmbTo = New ComboBox()
         cmbTo.DropDownStyle = ComboBoxStyle.DropDownList
-        cmbTo.Location = New Point(240, 140)
+        cmbTo.Location = New Point(240, 90)
         cmbTo.Width = 200
         Me.Controls.Add(cmbTo)
 
@@ -77,11 +71,11 @@ Public Class UnitConverterForm
         Dim lblIn As New Label()
         lblIn.Text = "Input"
         lblIn.ForeColor = Color.LightGray
-        lblIn.Location = New Point(20, 180)
+        lblIn.Location = New Point(20, 130)
         Me.Controls.Add(lblIn)
 
         txtInput = New TextBox()
-        txtInput.Location = New Point(20, 200)
+        txtInput.Location = New Point(20, 150)
         txtInput.Width = 200
         Me.Controls.Add(txtInput)
 
@@ -89,11 +83,11 @@ Public Class UnitConverterForm
         Dim lblOut As New Label()
         lblOut.Text = "Result"
         lblOut.ForeColor = Color.LightGray
-        lblOut.Location = New Point(240, 180)
+        lblOut.Location = New Point(240, 130)
         Me.Controls.Add(lblOut)
 
         txtOutput = New TextBox()
-        txtOutput.Location = New Point(240, 200)
+        txtOutput.Location = New Point(240, 150)
         txtOutput.Width = 200
         txtOutput.ReadOnly = True
         Me.Controls.Add(txtOutput)
@@ -101,7 +95,7 @@ Public Class UnitConverterForm
         ' ===== BUTTON =====
         Dim btnConvert As New Button()
         btnConvert.Text = "Convert"
-        btnConvert.Location = New Point(20, 240)
+        btnConvert.Location = New Point(20, 190)
         btnConvert.Width = 420
         btnConvert.Height = 32
         btnConvert.BackColor = Color.FromArgb(0, 122, 204)
@@ -114,7 +108,7 @@ Public Class UnitConverterForm
         lblStatus = New Label()
         lblStatus.Text = "Ready"
         lblStatus.ForeColor = Color.LightGray
-        lblStatus.Location = New Point(20, 280)
+        lblStatus.Location = New Point(20, 230)
         lblStatus.AutoSize = True
         Me.Controls.Add(lblStatus)
 

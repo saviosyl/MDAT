@@ -15,33 +15,36 @@ Public Class CalcForm
     Public Sub New()
 
         Me.Text = "Engineering Calculator"
-        Me.Size = New Size(300, 220)
+        Me.Size = New Size(300, 330)
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.StartPosition = FormStartPosition.CenterParent
 
+        FormFooter.AddPremiumFooter(Me)
+        FormHeader.AddPremiumHeader(Me, "Engineering Calculator", "MetaMech Engineering Tools")
+
         txtA = New TextBox()
-        txtA.Location = New Point(30, 30)
+        txtA.Location = New Point(30, 115)
         Me.Controls.Add(txtA)
 
         txtB = New TextBox()
-        txtB.Location = New Point(30, 60)
+        txtB.Location = New Point(30, 145)
         Me.Controls.Add(txtB)
 
         Dim btnAdd As New Button()
         btnAdd.Text = "+"
-        btnAdd.Location = New Point(180, 30)
+        btnAdd.Location = New Point(180, 115)
         AddHandler btnAdd.Click, Sub() Calc(Function(a, b) a + b)
         Me.Controls.Add(btnAdd)
 
         Dim btnMul As New Button()
         btnMul.Text = "×"
-        btnMul.Location = New Point(180, 60)
+        btnMul.Location = New Point(180, 145)
         AddHandler btnMul.Click, Sub() Calc(Function(a, b) a * b)
         Me.Controls.Add(btnMul)
 
         lblResult = New Label()
-        lblResult.Location = New Point(30, 110)
+        lblResult.Location = New Point(30, 195)
         lblResult.AutoSize = True
         Me.Controls.Add(lblResult)
 

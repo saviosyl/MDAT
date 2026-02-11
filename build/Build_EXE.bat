@@ -245,6 +245,8 @@ echo.
  "%TOOLS_DIR%\TorqueCalculatorForm.vb" ^
  "%TOOLS_DIR%\UnitConverterForm.vb" ^
  "%TOOLS_DIR%\UnitSystem.vb" ^
+ "%TOOLS_DIR%\FormHeader.vb" ^
+ "%TOOLS_DIR%\FormFooter.vb" ^
  1>"%LOG_MDAT%" 2>&1
 
 if errorlevel 1 goto :MDAT_FAIL

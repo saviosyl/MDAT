@@ -3,13 +3,14 @@ Option Strict On
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports System.IO
+Imports System.Diagnostics
 
 Public Class AboutForm
     Inherits Form
 
     Public Sub New()
         Me.Text = "About " & UITheme.AppName
-        Me.Size = New Size(520, 400)
+        Me.Size = New Size(520, 430)
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.StartPosition = FormStartPosition.CenterParent
         Me.MaximizeBox = False
@@ -65,7 +66,6 @@ Public Class AboutForm
         Dim lblInfo As New Label()
         lblInfo.Text =
             "© 2026 MetaMech Solutions" & Environment.NewLine &
-            "www.metamechsolutions.com" & Environment.NewLine &
             Environment.NewLine &
             "Designed by MetaMech Solutions"
         lblInfo.ForeColor = Color.FromArgb(169, 199, 232)
@@ -73,13 +73,49 @@ Public Class AboutForm
         lblInfo.Font = New Font("Segoe UI", 9, FontStyle.Regular)
         lblInfo.TextAlign = ContentAlignment.MiddleCenter
         lblInfo.Location = New Point(40, 225)
-        lblInfo.Size = New Size(Me.ClientSize.Width - 80, 80)
+        lblInfo.Size = New Size(Me.ClientSize.Width - 80, 60)
         Me.Controls.Add(lblInfo)
+
+        Dim accentCol As Color = Color.FromArgb(0, 180, 255)
+
+        Dim lnkSite As New LinkLabel()
+        lnkSite.Text = "metamechsolutions.com"
+        lnkSite.Font = New Font("Segoe UI", 9, FontStyle.Regular)
+        lnkSite.LinkColor = accentCol
+        lnkSite.ActiveLinkColor = accentCol
+        lnkSite.VisitedLinkColor = accentCol
+        lnkSite.BackColor = Color.Transparent
+        lnkSite.AutoSize = True
+        lnkSite.Location = New Point((Me.ClientSize.Width - 160) \ 2, 285)
+        AddHandler lnkSite.LinkClicked, Sub(ss As Object, ee As LinkLabelLinkClickedEventArgs)
+                                             Try
+                                                 Process.Start("https://metamechsolutions.com/")
+                                             Catch
+                                             End Try
+                                         End Sub
+        Me.Controls.Add(lnkSite)
+
+        Dim lnkBlog As New LinkLabel()
+        lnkBlog.Text = "Help & Blog"
+        lnkBlog.Font = New Font("Segoe UI", 9, FontStyle.Regular)
+        lnkBlog.LinkColor = accentCol
+        lnkBlog.ActiveLinkColor = accentCol
+        lnkBlog.VisitedLinkColor = accentCol
+        lnkBlog.BackColor = Color.Transparent
+        lnkBlog.AutoSize = True
+        lnkBlog.Location = New Point((Me.ClientSize.Width - 80) \ 2, 305)
+        AddHandler lnkBlog.LinkClicked, Sub(ss As Object, ee As LinkLabelLinkClickedEventArgs)
+                                             Try
+                                                 Process.Start("https://metamechsolutions.com/blog/")
+                                             Catch
+                                             End Try
+                                         End Sub
+        Me.Controls.Add(lnkBlog)
 
         Dim btnOK As New Button()
         btnOK.Text = "OK"
         btnOK.Size = New Size(100, 34)
-        btnOK.Location = New Point((Me.ClientSize.Width - 100) \ 2, 320)
+        btnOK.Location = New Point((Me.ClientSize.Width - 100) \ 2, 340)
         btnOK.BackColor = Color.FromArgb(0, 180, 255)
         btnOK.ForeColor = Color.White
         btnOK.FlatStyle = FlatStyle.Flat

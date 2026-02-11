@@ -10,10 +10,13 @@ Public Class PdfExportForm
 
     Public Sub New()
         Me.Text = "Export Report"
-        Me.Size = New Size(420, 300)
+        Me.Size = New Size(420, 400)
         Me.FormBorderStyle = FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.StartPosition = FormStartPosition.CenterParent
+
+        FormFooter.AddPremiumFooter(Me)
+        FormHeader.AddPremiumHeader(Me, "PDF Export", "MetaMech Engineering Tools")
 
         txtContent = New TextBox()
         txtContent.Multiline = True
