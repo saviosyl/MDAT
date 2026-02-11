@@ -193,7 +193,7 @@ echo [STEP] Generating EXE icon from logo
 echo ============================================================
 set "ICO_PATH=%OUTPUT_DIR%\assets\logo\app.ico"
 set "ICO_FLAG="
-powershell -NoProfile -Command "try { Add-Type -AssemblyName System.Drawing; $bmp = [System.Drawing.Bitmap]::new('%OUTPUT_DIR%\assets\logo\logo.png'); $ico = [System.Drawing.Icon]::FromHandle($bmp.GetHicon()); $fs = [System.IO.File]::Create('%ICO_PATH%'); $ico.Save($fs); $fs.Close(); $ico.Dispose(); $bmp.Dispose(); Write-Host '[OK] Icon generated' } catch { Write-Host '[SKIP] Icon generation failed' }" 2>nul
+powershell -NoProfile -Command "try { Add-Type -AssemblyName System.Drawing; $png = '%OUTPUT_DIR%\assets\logo\logo.png'; $out = '%ICO_PATH%'; $bmp = New-Object System.Drawing.Bitmap($png); $sz = 48; $thumb = New-Object System.Drawing.Bitmap($bmp, $sz, $sz); $ms = New-Object System.IO.MemoryStream; $thumb.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png); $pngBytes = $ms.ToArray(); $ms.Dispose(); $thumb.Dispose(); $bmp.Dispose(); $fs = [System.IO.File]::Create($out); $w = New-Object System.IO.BinaryWriter($fs); $w.Write([UInt16]0); $w.Write([UInt16]1); $w.Write([UInt16]1); $w.Write([byte]$sz); $w.Write([byte]$sz); $w.Write([byte]0); $w.Write([byte]0); $w.Write([UInt16]1); $w.Write([UInt16]32); $w.Write([UInt32]$pngBytes.Length); $w.Write([UInt32]22); $w.Write($pngBytes); $w.Close(); $fs.Close(); Write-Host '[OK] Icon generated' } catch { Write-Host '[SKIP] Icon generation failed:' $_.Exception.Message }" 2>nul
 if exist "%ICO_PATH%" (
   set "ICO_FLAG=/win32icon:"%ICO_PATH%""
   echo [OK] Will embed icon: %ICO_PATH%
