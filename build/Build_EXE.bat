@@ -221,6 +221,7 @@ echo.
  "%APP_DIR%\AboutForm.vb" ^
  "%APP_DIR%\UITheme.vb" ^
  "%TOOLS_DIR%\ThemeApplier.vb" ^
+ "%TOOLS_DIR%\UISettings.vb" ^
  "%TOOLS_DIR%\AdminLoginForm.vb" ^
  "%TOOLS_DIR%\AdminMacroEditorForm.vb" ^
  "%TOOLS_DIR%\ConveyorCalculatorForm.vb" ^

@@ -11,6 +11,7 @@ Public Module ThemeApplier
     ' ApplyTheme
     ' - Safe: only changes colors/fonts, never changes layout/positions
     ' - Keeps "special" colored buttons (Green/Yellow/Red) as-is
+    ' - Updated to use UITheme navy palette for dark mode
     ' ============================================================
     Public Sub ApplyTheme(target As Control, bg As Color, panel As Color, accent As Color, isDark As Boolean)
         If target Is Nothing Then Exit Sub
@@ -20,6 +21,37 @@ Public Module ThemeApplier
             ApplyChildren(target, bg, panel, accent, isDark)
         Catch
             ' never let theme crash the app
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Apply the current UITheme to a form and all its children.
+    ''' Convenience overload that pulls colors from UITheme.
+    ''' </summary>
+    Public Sub ApplyCurrentTheme(target As Control)
+        If target Is Nothing Then Exit Sub
+        Dim bg As Color = UITheme.BgMain
+        Dim panel As Color = UITheme.BgPanel
+        Dim accent As Color = UITheme.Accent
+        Dim isDark As Boolean = UITheme.IsDark
+        ApplyTheme(target, bg, panel, accent, isDark)
+    End Sub
+
+    ''' <summary>
+    ''' Apply theme to all currently open owned forms of a parent form.
+    ''' </summary>
+    Public Sub ApplyToAllOwnedForms(owner As Form)
+        If owner Is Nothing Then Exit Sub
+        Try
+            Dim owned() As Form = owner.OwnedForms
+            If owned Is Nothing Then Exit Sub
+            For Each f As Form In owned
+                Try
+                    ApplyCurrentTheme(f)
+                Catch
+                End Try
+            Next
+        Catch
         End Try
     End Sub
 
@@ -41,8 +73,15 @@ Public Module ThemeApplier
     Private Sub ApplyToOne(c As Control, bg As Color, panel As Color, accent As Color, isDark As Boolean)
         If c Is Nothing Then Exit Sub
 
-        Dim textCol As Color = If(isDark, Color.White, Color.Black)
-        Dim faintText As Color = If(isDark, Color.FromArgb(210, 210, 210), Color.FromArgb(60, 60, 60))
+        Dim textCol As Color = If(isDark, UITheme.TextPrimary, UITheme.TextPrimary)
+        ' Recalculate from isDark parameter (caller may not have set UITheme.CurrentTheme yet)
+        If isDark Then
+            textCol = Color.FromArgb(234, 244, 255) ' EAF4FF
+        Else
+            textCol = Color.FromArgb(26, 26, 46) ' 1A1A2E
+        End If
+
+        Dim faintText As Color = If(isDark, Color.FromArgb(169, 199, 232), Color.FromArgb(108, 117, 125))
 
         Try
             ' ---- FORM ----
@@ -133,7 +172,7 @@ Public Module ThemeApplier
             If TypeOf c Is Button Then
                 Dim b As Button = DirectCast(c, Button)
 
-                ' Keep special action colors (common in your calculators)
+                ' Keep special action colors (common in calculators)
                 If IsSpecialActionButtonColor(b.BackColor) Then
                     b.ForeColor = Color.White
                     Exit Sub
@@ -143,7 +182,7 @@ Public Module ThemeApplier
                 b.FlatAppearance.BorderSize = 1
                 b.FlatAppearance.BorderColor = accent
 
-                b.BackColor = If(isDark, Color.FromArgb(40, 45, 58), Color.White)
+                b.BackColor = If(isDark, Color.FromArgb(22, 44, 69), Color.FromArgb(240, 242, 245))
                 b.ForeColor = textCol
                 Exit Sub
             End If
@@ -176,7 +215,6 @@ Public Module ThemeApplier
             End If
 
             ' ---- DEFAULT FALLBACK ----
-            ' Do not over-touch unknown controls; keep stable.
             c.ForeColor = textCol
 
         Catch
@@ -185,7 +223,6 @@ Public Module ThemeApplier
     End Sub
 
     Private Function IsSpecialActionButtonColor(c As Color) As Boolean
-        ' common "action" colors used in your engineering tools
         If c = Color.LightGreen Then Return True
         If c = Color.Gold Then Return True
         If c = Color.OrangeRed Then Return True

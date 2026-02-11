@@ -1,21 +1,47 @@
-# ===============================
-# MDAT THEME - LIGHT
-# ===============================
+; ==============================
+; MDAT THEME - LIGHT (Premium)
+; ==============================
 
-[Brand]
-AppName=MDAT
-Tagline=Mechanical Design Automation Tool
+[meta]
+name = MDAT Light
+author = MetaMech
+version = 2.0
 
-[Colors]
-BG_MAIN=#F2F2F2
-BG_PANEL=#E6E6E6
-BG_CARD=#FFFFFF
-ACCENT_PRIMARY=#007ACC
+[background]
+main   = #F8F9FA
+panel  = #FFFFFF
+card   = #FFFFFF
 
-TEXT_PRIMARY=#000000
-TEXT_MUTED=#555555
+[accent]
+primary   = #00B4FF
+secondary = #00B4D8
+teal      = #00B4D8
 
-BTN_BG=#DDDDDD
-BTN_TEXT=#000000
+[text]
+primary   = #1A1A2E
+secondary = #6C757D
 
-FOOTER_BG=#E6E6E6
+[border]
+default = #E0E0E0
+
+[header]
+background = #1A1A2E
+text       = #FFFFFF
+
+[log]
+background = #1E1E2E
+text       = #D4D4D4
+
+[button]
+background = #F0F2F5
+hover      = #E3E8EF
+selected   = #00B4FF
+selected_text = #FFFFFF
+
+[footer]
+background = #F0F2F5
+
+[status]
+success = #28A745
+warning = #FFC107
+error   = #DC3545

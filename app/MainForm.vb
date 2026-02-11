@@ -124,13 +124,13 @@ Public Class MainForm
     End Enum
 
     Private currentTheme As ThemeMode = ThemeMode.PANEL_LIGHT
-    Private customAccent As Color = Color.FromArgb(115, 60, 190)
+    Private customAccent As Color = Color.FromArgb(0, 180, 255)
 
-    Private BG_LIGHT As Color = Color.FromArgb(245, 246, 248)
-    Private PANEL_LIGHT As Color = Color.FromArgb(230, 232, 235)
+    Private BG_LIGHT As Color = Color.FromArgb(248, 249, 250)
+    Private PANEL_LIGHT As Color = Color.FromArgb(255, 255, 255)
 
-    Private BG_DARK As Color = Color.FromArgb(26, 30, 36)
-    Private PANEL_DARK As Color = Color.FromArgb(38, 42, 50)
+    Private BG_DARK As Color = Color.FromArgb(11, 30, 52)
+    Private PANEL_DARK As Color = Color.FromArgb(15, 42, 68)
 
     Private BG_MM As Color = Color.FromArgb(242, 240, 248)
     Private PANEL_MM As Color = Color.FromArgb(225, 220, 240)
@@ -194,6 +194,19 @@ Public Class MainForm
             Try
                 If telemetryEnabled AndAlso syncUrl <> "" AndAlso telemetryToken <> "" Then
                     TelemetryQueue.Flush(syncUrl, telemetryToken, 8000)
+                End If
+            Catch
+            End Try
+
+            ' ---- LOAD SAVED THEME ----
+            Try
+                Dim savedTheme As String = UISettings.LoadThemeName()
+                If savedTheme = "Dark" Then
+                    currentTheme = ThemeMode.PANEL_DARK
+                    UITheme.SetTheme(UITheme.ThemeKind.Dark)
+                Else
+                    currentTheme = ThemeMode.PANEL_LIGHT
+                    UITheme.SetTheme(UITheme.ThemeKind.Light)
                 End If
             Catch
             End Try
@@ -1464,12 +1477,12 @@ Public Class MainForm
     ' THEME
     '========================================================
     Private Sub ShowThemeMenu(sender As Object, e As EventArgs)
-        Dim m As New ContextMenuStrip()
-        m.Items.Add("Light", Nothing, Sub() SetTheme(ThemeMode.PANEL_LIGHT))
-        m.Items.Add("Dark", Nothing, Sub() SetTheme(ThemeMode.PANEL_DARK))
-        m.Items.Add("MetaMech", Nothing, Sub() SetTheme(ThemeMode.PANEL_MM))
-        m.Items.Add("Custom…", Nothing, Sub() PickCustomTheme())
-        m.Show(btnTheme, New Point(0, btnTheme.Height))
+        ' Cycle between Light and Dark
+        If currentTheme = ThemeMode.PANEL_DARK Then
+            SetTheme(ThemeMode.PANEL_LIGHT)
+        Else
+            SetTheme(ThemeMode.PANEL_DARK)
+        End If
     End Sub
 
     Private Sub PickCustomTheme()
@@ -1483,33 +1496,72 @@ Public Class MainForm
 
     Private Sub SetTheme(m As ThemeMode)
         currentTheme = m
+
+        ' Sync UITheme class state
+        If m = ThemeMode.PANEL_DARK Then
+            UITheme.SetTheme(UITheme.ThemeKind.Dark)
+        Else
+            UITheme.SetTheme(UITheme.ThemeKind.Light)
+        End If
+
         ApplyTheme()
+
+        ' Apply to all open child forms
+        Try
+            ThemeApplier.ApplyToAllOwnedForms(Me)
+        Catch
+        End Try
+
+        ' Persist preference
+        Try
+            UISettings.SaveThemeName(If(m = ThemeMode.PANEL_DARK, "Dark", "Light"))
+        Catch
+        End Try
     End Sub
 
     Private Sub ApplyTheme()
+        Dim bg As Color = BG_LIGHT
+        Dim panel As Color = PANEL_LIGHT
+
         Select Case currentTheme
             Case ThemeMode.PANEL_LIGHT
-                Me.BackColor = BG_LIGHT
-                pnlHeader.BackColor = PANEL_LIGHT
+                bg = BG_LIGHT
+                panel = PANEL_LIGHT
                 currentThemeIsDark = False
 
             Case ThemeMode.PANEL_DARK
-                Me.BackColor = BG_DARK
-                pnlHeader.BackColor = PANEL_DARK
+                bg = BG_DARK
+                panel = PANEL_DARK
                 currentThemeIsDark = True
 
             Case ThemeMode.PANEL_MM
-                Me.BackColor = BG_MM
-                pnlHeader.BackColor = PANEL_MM
+                bg = BG_MM
+                panel = PANEL_MM
                 currentThemeIsDark = False
 
             Case ThemeMode.PANEL_CUSTOM
-                Me.BackColor = BG_LIGHT
-                pnlHeader.BackColor = PANEL_LIGHT
+                bg = BG_LIGHT
+                panel = PANEL_LIGHT
                 currentThemeIsDark = False
         End Select
 
-        pnlHeaderLine.BackColor = customAccent
+        ' Apply theme recursively to the whole form
+        Try
+            ThemeApplier.ApplyTheme(Me, bg, panel, customAccent, currentThemeIsDark)
+        Catch
+        End Try
+
+        ' Override header-specific styling
+        Try
+            pnlHeader.BackColor = If(currentThemeIsDark, UITheme.HeaderBg, panel)
+            pnlHeaderLine.BackColor = customAccent
+
+            ' Update theme button text
+            If btnTheme IsNot Nothing Then
+                btnTheme.Text = If(currentThemeIsDark, "☀ LIGHT", "🌙 DARK")
+            End If
+        Catch
+        End Try
 
         Try
             If licenseValid Then

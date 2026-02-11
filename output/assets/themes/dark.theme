@@ -1,11 +1,11 @@
 ; ==============================
-; MDAT THEME - DARK
+; MDAT THEME - DARK (Premium Navy)
 ; ==============================
 
 [meta]
 name = MDAT Dark
 author = MetaMech
-version = 1.0
+version = 2.0
 
 [background]
 main   = #0B1E34
@@ -20,6 +20,26 @@ teal      = #00E5D0
 [text]
 primary   = #EAF4FF
 secondary = #A9C7E8
+
+[border]
+default = #1E3A5F
+
+[header]
+background = #071525
+text       = #FFFFFF
+
+[log]
+background = #050E1A
+text       = #A9C7E8
+
+[button]
+background = #162C45
+hover      = #1E3A5F
+selected   = #00B4FF
+selected_text = #FFFFFF
+
+[footer]
+background = #0A1929
 
 [status]
 success = #00E5D0
