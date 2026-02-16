@@ -281,7 +281,7 @@ Public Class MainForm
 
         picLogo = New PictureBox() With {
             .Size = New Size(120, 85),
-            .Location = New Point(2, 8),
+            .Location = New Point(20, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
