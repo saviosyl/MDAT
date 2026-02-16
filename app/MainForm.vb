@@ -280,8 +280,8 @@ Public Class MainForm
         Me.Controls.Add(pnlHeader)
 
         picLogo = New PictureBox() With {
-            .Size = New Size(280, 75),
-            .Location = New Point(4, 10),
+            .Size = New Size(120, 85),
+            .Location = New Point(2, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }

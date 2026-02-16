@@ -149,8 +149,8 @@ Public Module FormHeader
 
         ' Logo
         Dim picLogo As New PictureBox() With {
-            .Size = New Size(260, 70),
-            .Location = New Point(4, 5),
+            .Size = New Size(100, 70),
+            .Location = New Point(2, 5),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
