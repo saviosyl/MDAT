@@ -271,8 +271,8 @@ Public Class MainForm
         Me.Controls.Add(pnlHeader)
 
         picLogo = New PictureBox() With {
-            .Size = New Size(220, 95),
-            .Location = New Point(5, 8),
+            .Size = New Size(280, 75),
+            .Location = New Point(8, 10),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -594,7 +594,7 @@ Public Class MainForm
         pnlFooter.Controls.Add(pnlFooterBorder)
 
         lblFooterLeft = New Label() With {
-            .Text = "Registered Name: John Byrne Conveyors & Packaging Services Ltd. T/A CPS",
+            .Text = "© 2026 MetaMech Solutions. All Rights Reserved.",
             .Font = New Font("Segoe UI", 8, FontStyle.Regular),
             .AutoSize = True,
             .Location = New Point(10, 8)

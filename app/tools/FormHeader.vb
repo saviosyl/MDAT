@@ -130,10 +130,19 @@ Public Module FormHeader
         }
         frm.Controls.Add(pnlHeader)
 
+        ' Set form icon
+        Try
+            Dim icoPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mdat.ico")
+            If File.Exists(icoPath) Then
+                frm.Icon = New Icon(icoPath)
+            End If
+        Catch
+        End Try
+
         ' Logo
         Dim picLogo As New PictureBox() With {
-            .Size = New Size(170, 65),
-            .Location = New Point(15, 8),
+            .Size = New Size(240, 65),
+            .Location = New Point(10, 8),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
