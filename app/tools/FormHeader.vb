@@ -130,19 +130,27 @@ Public Module FormHeader
         }
         frm.Controls.Add(pnlHeader)
 
-        ' Set form icon
+        ' Set form icon (title bar + taskbar)
         Try
-            Dim icoPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mdat.ico")
+            Dim icoPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "logo", "app.ico")
             If File.Exists(icoPath) Then
                 frm.Icon = New Icon(icoPath)
+            Else
+                Dim pngPath As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "logo", "logo.png")
+                If File.Exists(pngPath) Then
+                    Using bmp As New Bitmap(pngPath)
+                        Dim hIcon As IntPtr = bmp.GetHicon()
+                        frm.Icon = Icon.FromHandle(hIcon)
+                    End Using
+                End If
             End If
         Catch
         End Try
 
         ' Logo
         Dim picLogo As New PictureBox() With {
-            .Size = New Size(240, 65),
-            .Location = New Point(10, 8),
+            .Size = New Size(260, 70),
+            .Location = New Point(4, 5),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -166,7 +174,7 @@ Public Module FormHeader
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 10, 12)
+            .Location = New Point(picLogo.Right + 4, 12)
         }
         pnlHeader.Controls.Add(lblTitle)
 
@@ -177,7 +185,7 @@ Public Module FormHeader
             .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 10, 42)
+            .Location = New Point(picLogo.Right + 4, 42)
         }
         pnlHeader.Controls.Add(lblSub)
     End Sub

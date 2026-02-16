@@ -179,11 +179,20 @@ Public Class MainForm
             Me.FormBorderStyle = FormBorderStyle.Sizable
             Me.MinimumSize = New Size(1100, 700)
 
-            ' Set application icon (taskbar + title bar)
+            ' Set application icon (title bar)
             Try
-                Dim icoPath As String = IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mdat.ico")
+                Dim icoPath As String = IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "logo", "app.ico")
                 If IO.File.Exists(icoPath) Then
                     Me.Icon = New Icon(icoPath)
+                Else
+                    ' Fallback: load from logo PNG
+                    Dim pngPath As String = IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets", "logo", "logo.png")
+                    If IO.File.Exists(pngPath) Then
+                        Using bmp As New Bitmap(pngPath)
+                            Dim hIcon As IntPtr = bmp.GetHicon()
+                            Me.Icon = Icon.FromHandle(hIcon)
+                        End Using
+                    End If
                 End If
             Catch
             End Try
@@ -272,7 +281,7 @@ Public Class MainForm
 
         picLogo = New PictureBox() With {
             .Size = New Size(280, 75),
-            .Location = New Point(8, 10),
+            .Location = New Point(4, 10),
             .SizeMode = PictureBoxSizeMode.Zoom,
             .BackColor = Color.Transparent
         }
@@ -296,7 +305,7 @@ Public Class MainForm
             .ForeColor = Color.White,
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 8, 18)
+            .Location = New Point(picLogo.Right + 4, 18)
         }
         pnlHeader.Controls.Add(lblTitle)
 
@@ -306,7 +315,7 @@ Public Class MainForm
             .ForeColor = Color.FromArgb(169, 199, 232),
             .BackColor = Color.Transparent,
             .AutoSize = True,
-            .Location = New Point(picLogo.Right + 8, 52)
+            .Location = New Point(picLogo.Right + 4, 52)
         }
         pnlHeader.Controls.Add(lblSubtitle)
 
