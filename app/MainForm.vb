@@ -179,6 +179,15 @@ Public Class MainForm
             Me.FormBorderStyle = FormBorderStyle.Sizable
             Me.MinimumSize = New Size(1100, 700)
 
+            ' Set application icon (taskbar + title bar)
+            Try
+                Dim icoPath As String = IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mdat.ico")
+                If IO.File.Exists(icoPath) Then
+                    Me.Icon = New Icon(icoPath)
+                End If
+            Catch
+            End Try
+
             Dim wa As Rectangle = Screen.PrimaryScreen.WorkingArea
             Me.Size = New Size(CInt(wa.Width * 0.92), CInt(wa.Height * 0.88))
 
@@ -1947,6 +1956,14 @@ Public Class MainForm
         Try
             If licenseValid Then
                 lblLicence.ForeColor = Color.White
+            End If
+        Catch
+        End Try
+
+        ' Re-apply license validity colors (ThemeApplier may have overwritten them)
+        Try
+            If activeLicense IsNot Nothing Then
+                UpdateLicenseUI(activeLicense)
             End If
         Catch
         End Try
