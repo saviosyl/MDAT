@@ -1963,7 +1963,7 @@ Public Class MainForm
         ' Re-apply license validity colors (ThemeApplier may have overwritten them)
         Try
             If activeLicense IsNot Nothing Then
-                UpdateLicenseUI(activeLicense)
+                ResolveTierFromLicense(activeLicense)
             End If
         Catch
         End Try
