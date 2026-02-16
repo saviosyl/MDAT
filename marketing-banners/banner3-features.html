@@ -14,27 +14,28 @@ body { width: 1200px; height: 627px; overflow: hidden; font-family: 'Segoe UI', 
   content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
   background: linear-gradient(90deg, #00B4FF, #00E5D0);
 }
-.top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
 .tag { display: inline-block; background: rgba(0,180,255,0.15); color: #00B4FF;
   font-size: 13px; font-weight: 600; letter-spacing: 2px; padding: 6px 16px;
   border-radius: 20px; text-transform: uppercase; }
 h1 { color: #FFFFFF; font-size: 38px; font-weight: 700; margin-top: 16px; line-height: 1.15; }
 h1 span { color: #00B4FF; }
-.brand { text-align: right; }
-.brand-name { color: white; font-size: 22px; font-weight: 700; }
-.brand-sub { color: #00B4FF; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
-.features { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo { width: 50px; height: 50px; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 2px 16px rgba(0,180,255,0.2); }
+.brand-text { text-align: left; }
+.brand-name { color: white; font-size: 16px; font-weight: 700; }
+.brand-tagline { color: #00E5D0; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+.features { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 32px; }
 .feature {
   background: rgba(255,255,255,0.04); border: 1px solid rgba(0,180,255,0.15);
-  border-radius: 12px; padding: 24px; transition: all 0.3s;
+  border-radius: 12px; padding: 22px;
 }
-.feature-icon { font-size: 28px; margin-bottom: 10px; }
-.feature-title { color: #FFFFFF; font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.feature-desc { color: #A9C7E8; font-size: 13px; line-height: 1.4; }
+.feature-icon { font-size: 26px; margin-bottom: 8px; }
+.feature-title { color: #FFFFFF; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+.feature-desc { color: #A9C7E8; font-size: 12px; line-height: 1.4; }
 .bottom { display: flex; justify-content: space-between; align-items: center; }
 .cta { background: linear-gradient(135deg, #00B4FF, #00E5D0); color: #0B1E34;
-  font-size: 15px; font-weight: 700; padding: 12px 28px; border-radius: 8px;
-  display: inline-block; }
+  font-size: 15px; font-weight: 700; padding: 12px 28px; border-radius: 8px; }
 .url { color: #A9C7E8; font-size: 15px; }
 .url span { color: #00B4FF; font-weight: 600; }
 </style>
@@ -47,8 +48,11 @@ h1 span { color: #00B4FF; }
       <h1>Your Entire SolidWorks Workflow. <span>One Click.</span></h1>
     </div>
     <div class="brand">
-      <div class="brand-name">MetaMech</div>
-      <div class="brand-sub">MDAT</div>
+      <img class="brand-logo" src="https://metamechsolutions.com/metamech-logo.png" alt="MetaMech">
+      <div class="brand-text">
+        <div class="brand-name">MetaMech</div>
+        <div class="brand-tagline">Automate. Accelerate. Engineer.</div>
+      </div>
     </div>
   </div>
   <div class="features">

@@ -21,7 +21,7 @@ body { width: 1200px; height: 627px; overflow: hidden; font-family: 'Segoe UI', 
   background: linear-gradient(90deg, #00B4FF, #00E5D0);
 }
 .left { flex: 1; z-index: 1; }
-.right { width: 380px; z-index: 1; text-align: center; }
+.right { width: 380px; z-index: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .tag { display: inline-block; background: rgba(0,180,255,0.15); color: #00B4FF;
   font-size: 14px; font-weight: 600; letter-spacing: 2px; padding: 6px 16px;
   border-radius: 20px; margin-bottom: 24px; text-transform: uppercase; }
@@ -32,10 +32,9 @@ p { color: #A9C7E8; font-size: 20px; line-height: 1.5; margin-bottom: 30px; }
 .stat { text-align: center; }
 .stat-num { color: #00E5D0; font-size: 38px; font-weight: 700; }
 .stat-label { color: #A9C7E8; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-.logo-area { margin-bottom: 20px; }
-.logo-text { color: white; font-size: 28px; font-weight: 700; }
-.logo-sub { color: #00B4FF; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
-.url { color: #A9C7E8; font-size: 16px; margin-top: 30px; }
+.logo-img { width: 200px; height: auto; margin-bottom: 12px; background: white; border-radius: 16px; padding: 12px 18px; box-shadow: 0 4px 30px rgba(0,180,255,0.15); }
+.tagline { color: #00E5D0; font-size: 14px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+.url { color: #A9C7E8; font-size: 16px; margin-top: 16px; }
 .url span { color: #00B4FF; font-weight: 600; }
 .gear { font-size: 120px; opacity: 0.06; position: absolute; right: 60px; top: 40px; color: white; }
 </style>
@@ -63,10 +62,8 @@ p { color: #A9C7E8; font-size: 20px; line-height: 1.5; margin-bottom: 30px; }
     </div>
   </div>
   <div class="right">
-    <div class="logo-area">
-      <div class="logo-text">MetaMech</div>
-      <div class="logo-sub">Mechanical Design Automation</div>
-    </div>
+    <img class="logo-img" src="https://metamechsolutions.com/metamech-logo.png" alt="MetaMech Logo">
+    <div class="tagline">Automate. Accelerate. Engineer.</div>
     <div class="url">🌐 <span>metamechsolutions.com</span></div>
   </div>
 </div>

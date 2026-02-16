@@ -31,9 +31,11 @@ h1 span { color: #00E5D0; }
   display: inline-block; letter-spacing: 0.5px; }
 .url { color: #A9C7E8; font-size: 16px; }
 .url span { color: #00B4FF; font-weight: 600; }
-.brand { position: absolute; right: 80px; bottom: 30px; text-align: right; }
-.brand-name { color: white; font-size: 22px; font-weight: 700; }
-.brand-sub { color: #00B4FF; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+.brand { position: absolute; right: 60px; bottom: 30px; display: flex; align-items: center; gap: 14px; }
+.brand-logo { width: 50px; height: 50px; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 2px 16px rgba(0,180,255,0.2); }
+.brand-text { text-align: left; }
+.brand-name { color: white; font-size: 16px; font-weight: 700; }
+.brand-tagline { color: #00E5D0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -53,8 +55,11 @@ h1 span { color: #00E5D0; }
     </div>
   </div>
   <div class="brand">
-    <div class="brand-name">MetaMech</div>
-    <div class="brand-sub">Mechanical Design Automation</div>
+    <img class="brand-logo" src="https://metamechsolutions.com/metamech-logo.png" alt="MetaMech">
+    <div class="brand-text">
+      <div class="brand-name">MetaMech Solutions</div>
+      <div class="brand-tagline">Automate. Accelerate. Engineer.</div>
+    </div>
   </div>
 </div>
 </body>

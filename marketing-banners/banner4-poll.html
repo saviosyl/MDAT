@@ -30,9 +30,11 @@ p { color: #A9C7E8; font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
 }
 .poll-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
 .poll-text { color: #FFFFFF; font-size: 17px; font-weight: 500; }
-.brand { position: absolute; right: 80px; bottom: 24px; text-align: right; }
-.brand-name { color: white; font-size: 18px; font-weight: 700; }
-.brand-sub { color: #A9C7E8; font-size: 12px; }
+.brand { position: absolute; right: 80px; bottom: 24px; display: flex; align-items: center; gap: 12px; }
+.brand-logo { width: 40px; height: 40px; background: white; border-radius: 10px; padding: 5px; box-shadow: 0 2px 12px rgba(0,180,255,0.2); }
+.brand-text { text-align: left; }
+.brand-name { color: white; font-size: 14px; font-weight: 700; }
+.brand-tagline { color: #00E5D0; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -61,8 +63,11 @@ p { color: #A9C7E8; font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
     </div>
   </div>
   <div class="brand">
-    <div class="brand-name">MetaMech Solutions</div>
-    <div class="brand-sub">metamechsolutions.com</div>
+    <img class="brand-logo" src="https://metamechsolutions.com/metamech-logo.png" alt="MetaMech">
+    <div class="brand-text">
+      <div class="brand-name">MetaMech Solutions</div>
+      <div class="brand-tagline">Automate. Accelerate. Engineer.</div>
+    </div>
   </div>
 </div>
 </body>
