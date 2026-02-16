@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 627px; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+.banner {
+  width: 1200px; height: 627px;
+  background: linear-gradient(160deg, #071525 0%, #0B1E34 50%, #0F2A44 100%);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 60px 80px; position: relative; overflow: hidden;
+}
+.banner::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #00B4FF, #00E5D0);
+}
+.accent-line { position: absolute; left: 60px; top: 80px; bottom: 80px; width: 3px;
+  background: linear-gradient(180deg, #00B4FF, #00E5D0); border-radius: 2px; }
+.content { padding-left: 30px; }
+.tag { display: inline-block; background: rgba(0,229,208,0.12); color: #00E5D0;
+  font-size: 13px; font-weight: 600; letter-spacing: 2px; padding: 6px 16px;
+  border-radius: 20px; margin-bottom: 28px; text-transform: uppercase; }
+h1 { color: #FFFFFF; font-size: 40px; font-weight: 700; line-height: 1.2; margin-bottom: 24px; max-width: 800px; }
+h1 span { color: #00E5D0; }
+.story { color: #A9C7E8; font-size: 22px; line-height: 1.6; max-width: 750px; margin-bottom: 36px; }
+.story em { color: #00B4FF; font-style: normal; font-weight: 600; }
+.bottom-row { display: flex; align-items: center; gap: 40px; }
+.cta { background: linear-gradient(135deg, #00B4FF, #00E5D0); color: #0B1E34;
+  font-size: 16px; font-weight: 700; padding: 14px 32px; border-radius: 8px;
+  display: inline-block; letter-spacing: 0.5px; }
+.url { color: #A9C7E8; font-size: 16px; }
+.url span { color: #00B4FF; font-weight: 600; }
+.brand { position: absolute; right: 80px; bottom: 30px; text-align: right; }
+.brand-name { color: white; font-size: 22px; font-weight: 700; }
+.brand-sub { color: #00B4FF; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="accent-line"></div>
+  <div class="content">
+    <div class="tag">Founder Story</div>
+    <h1>I Got Tired of Clicking the Same <span>47 Buttons</span> Every Morning</h1>
+    <div class="story">
+      So I built my own automation tool for SolidWorks.<br>
+      Then my colleagues wanted it. Then <em>their</em> colleagues wanted it.<br>
+      Now it's becoming a product.
+    </div>
+    <div class="bottom-row">
+      <div class="cta">🚀 Launching Soon</div>
+      <div class="url">🌐 <span>metamechsolutions.com</span></div>
+    </div>
+  </div>
+  <div class="brand">
+    <div class="brand-name">MetaMech</div>
+    <div class="brand-sub">Mechanical Design Automation</div>
+  </div>
+</div>
+</body>
+</html>

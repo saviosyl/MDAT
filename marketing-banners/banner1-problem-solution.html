@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 627px; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+.banner {
+  width: 1200px; height: 627px;
+  background: linear-gradient(135deg, #0B1E34 0%, #0F2A44 40%, #162C45 100%);
+  display: flex; align-items: center; padding: 60px 80px;
+  position: relative; overflow: hidden;
+}
+.banner::before {
+  content: ''; position: absolute; top: -100px; right: -100px;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,180,255,0.08) 0%, transparent 70%);
+}
+.banner::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #00B4FF, #00E5D0);
+}
+.left { flex: 1; z-index: 1; }
+.right { width: 380px; z-index: 1; text-align: center; }
+.tag { display: inline-block; background: rgba(0,180,255,0.15); color: #00B4FF;
+  font-size: 14px; font-weight: 600; letter-spacing: 2px; padding: 6px 16px;
+  border-radius: 20px; margin-bottom: 24px; text-transform: uppercase; }
+h1 { color: #FFFFFF; font-size: 44px; font-weight: 700; line-height: 1.15; margin-bottom: 20px; }
+h1 span { color: #00B4FF; }
+p { color: #A9C7E8; font-size: 20px; line-height: 1.5; margin-bottom: 30px; }
+.stat-row { display: flex; gap: 40px; }
+.stat { text-align: center; }
+.stat-num { color: #00E5D0; font-size: 38px; font-weight: 700; }
+.stat-label { color: #A9C7E8; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.logo-area { margin-bottom: 20px; }
+.logo-text { color: white; font-size: 28px; font-weight: 700; }
+.logo-sub { color: #00B4FF; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+.url { color: #A9C7E8; font-size: 16px; margin-top: 30px; }
+.url span { color: #00B4FF; font-weight: 600; }
+.gear { font-size: 120px; opacity: 0.06; position: absolute; right: 60px; top: 40px; color: white; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="gear">⚙</div>
+  <div class="left">
+    <div class="tag">SolidWorks Automation</div>
+    <h1>Engineers Waste <span>40%</span> of Time on Repetitive Tasks</h1>
+    <p>One-click automation for BOMs, exports, drawings & more. Built by engineers, for engineers.</p>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num">85%</div>
+        <div class="stat-label">Time Saved</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">&lt;2min</div>
+        <div class="stat-label">Setup</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">99.9%</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="logo-area">
+      <div class="logo-text">MetaMech</div>
+      <div class="logo-sub">Mechanical Design Automation</div>
+    </div>
+    <div class="url">🌐 <span>metamechsolutions.com</span></div>
+  </div>
+</div>
+</body>
+</html>

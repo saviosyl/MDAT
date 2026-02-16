@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 627px; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+.banner {
+  width: 1200px; height: 627px;
+  background: linear-gradient(135deg, #0B1E34 0%, #0F2A44 50%, #162C45 100%);
+  display: flex; align-items: center; padding: 60px 80px;
+  position: relative; overflow: hidden;
+}
+.banner::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #00B4FF, #00E5D0);
+}
+.left { flex: 1; }
+.right { width: 480px; }
+.tag { display: inline-block; background: rgba(0,180,255,0.15); color: #00B4FF;
+  font-size: 13px; font-weight: 600; letter-spacing: 2px; padding: 6px 16px;
+  border-radius: 20px; margin-bottom: 24px; text-transform: uppercase; }
+h1 { color: #FFFFFF; font-size: 36px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+h1 span { color: #00E5D0; }
+p { color: #A9C7E8; font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
+.poll-option {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(0,180,255,0.2);
+  border-radius: 10px; padding: 18px 24px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 16px;
+}
+.poll-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+.poll-text { color: #FFFFFF; font-size: 17px; font-weight: 500; }
+.brand { position: absolute; right: 80px; bottom: 24px; text-align: right; }
+.brand-name { color: white; font-size: 18px; font-weight: 700; }
+.brand-sub { color: #A9C7E8; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="left">
+    <div class="tag">Community Poll</div>
+    <h1>What Wastes Most of Your Time in <span>SolidWorks</span>?</h1>
+    <p>We're building something to fix this.<br>Drop a comment for early access 👇</p>
+  </div>
+  <div class="right">
+    <div class="poll-option">
+      <div class="poll-dot" style="background: #00B4FF;"></div>
+      <div class="poll-text">Drawing template setup</div>
+    </div>
+    <div class="poll-option">
+      <div class="poll-dot" style="background: #00E5D0;"></div>
+      <div class="poll-text">BOM / export workflows</div>
+    </div>
+    <div class="poll-option">
+      <div class="poll-dot" style="background: #FFC107;"></div>
+      <div class="poll-text">File management & renaming</div>
+    </div>
+    <div class="poll-option">
+      <div class="poll-dot" style="background: #F44336;"></div>
+      <div class="poll-text">Repetitive macro tasks</div>
+    </div>
+  </div>
+  <div class="brand">
+    <div class="brand-name">MetaMech Solutions</div>
+    <div class="brand-sub">metamechsolutions.com</div>
+  </div>
+</div>
+</body>
+</html>
