@@ -16,7 +16,7 @@ Module PdfMergeTool
     ' Page number placement (lower)
     Private Const PAGE_NUM_FONT_SIZE As Double = 8.0
     Private Const PAGE_NUM_RIGHT_MARGIN As Double = 8.0
-    Private Const PAGE_NUM_BOTTOM_MARGIN As Double = 3.0  ' smaller = closer to bottom edge
+    Private Const PAGE_NUM_BOTTOM_MARGIN As Double = 3.0
 
     ' Index layout
     Private Const INDEX_LINES_PER_PAGE As Integer = 38
@@ -31,19 +31,20 @@ Module PdfMergeTool
     Private Class RawLine
         Public IndentLevel As Integer
         Public Path As String
+        Public Display As String ' NEW: description / display text
     End Class
 
     Private Class IndexEntry
         Public FilePath As String
         Public FileName As String
+        Public DisplayName As String ' NEW: what we show in index
         Public PageCount As Integer
         Public StartPageInFinal As Integer
         Public IndentLevel As Integer
-        Public HierNo As String        ' e.g. "1.2.1."
-        Public TreePrefix As String    ' e.g. "│  ├─ "
+        Public HierNo As String
+        Public TreePrefix As String
     End Class
 
-    ' Tree for sorting children within each parent
     Private Class Node
         Public Entry As IndexEntry
         Public Children As New List(Of Node)()
@@ -105,7 +106,7 @@ Module PdfMergeTool
 
                 Dim lines() As String = File.ReadAllLines(listPath)
                 For Each line As String In lines
-                    Dim rl As RawLine = ParseIndentedLine(line)
+                    Dim rl As RawLine = ParseIndentedLine_WithOptionalDisplay(line)
                     If rl.Path.Trim().Length > 0 Then raw.Add(rl)
                 Next
             End If
@@ -115,6 +116,7 @@ Module PdfMergeTool
                     Dim rl As New RawLine()
                     rl.IndentLevel = 0
                     rl.Path = p
+                    rl.Display = ""
                     raw.Add(rl)
                 Next
             End If
@@ -133,6 +135,7 @@ Module PdfMergeTool
                 Dim x As New RawLine()
                 x.IndentLevel = rl.IndentLevel
                 x.Path = full
+                x.Display = SafeDisplayText(rl.Display)
                 cleaned.Add(x)
             Next
 
@@ -142,13 +145,8 @@ Module PdfMergeTool
 
             Dim entries As List(Of IndexEntry) = BuildIndexEntries(cleaned)
 
-            ' Sort children alphabetically within each parent (root order preserved)
             entries = SortChildrenAlphabeticallyWithinParents(entries)
-
-            ' Hierarchical numbering like 1., 1.1., 1.1.1.
             AssignHierarchicalNumbers(entries)
-
-            ' Tree prefix like │  ├─ / └─
             AssignTreePrefixes(entries)
 
             CreateMergedWithIndexAndPageNumbers(entries, outPath)
@@ -162,17 +160,24 @@ Module PdfMergeTool
         End Try
     End Sub
 
-    Private Function ParseIndentedLine(ByVal line As String) As RawLine
+    ' ============================================================
+    ' NEW: parse line with optional 2nd column:
+    '   [tabs/spaces indent] path [TAB display text]
+    ' ============================================================
+    Private Function ParseIndentedLine_WithOptionalDisplay(ByVal line As String) As RawLine
         Dim rl As New RawLine()
         rl.IndentLevel = 0
         rl.Path = ""
+        rl.Display = ""
 
         If line Is Nothing Then Return rl
+        If line.Trim().Length = 0 Then Return rl
 
         Dim s As String = line
+
+        ' Count leading indent
         Dim tabs As Integer = 0
         Dim spaces As Integer = 0
-
         Dim idx As Integer = 0
         While idx < s.Length
             Dim ch As Char = s.Chars(idx)
@@ -189,8 +194,39 @@ Module PdfMergeTool
 
         Dim spaceIndents As Integer = spaces \ 4
         rl.IndentLevel = tabs + spaceIndents
-        rl.Path = s.Trim()
+
+        ' Remove indent only (don’t Trim the whole line or we lose ability to split cleanly)
+        Dim rest As String = s.Substring(idx)
+
+        ' Split into columns by TAB
+        ' We support:
+        '   path
+        '   path<TAB>display
+        Dim parts() As String = rest.Split(ControlChars.Tab)
+
+        If parts.Length >= 1 Then
+            rl.Path = parts(0).Trim()
+        End If
+        If parts.Length >= 2 Then
+            rl.Display = parts(1).Trim()
+        Else
+            rl.Display = ""
+        End If
+
         Return rl
+    End Function
+
+    Private Function SafeDisplayText(ByVal s As String) As String
+        If s Is Nothing Then Return ""
+        Dim t As String = s.Trim()
+        If t.Length = 0 Then Return ""
+        t = t.Replace(ControlChars.Tab, " "c)
+        t = t.Replace(ControlChars.Cr, " "c)
+        t = t.Replace(ControlChars.Lf, " "c)
+        While t.Contains("  ")
+            t = t.Replace("  ", " ")
+        End While
+        Return t.Trim()
     End Function
 
     Private Function ExpandWildcards(ByVal lines As List(Of RawLine)) As List(Of RawLine)
@@ -211,6 +247,7 @@ Module PdfMergeTool
                         Dim x As New RawLine()
                         x.IndentLevel = rl.IndentLevel
                         x.Path = f
+                        x.Display = rl.Display
                         result.Add(x)
                     Next
                 End If
@@ -234,6 +271,7 @@ Module PdfMergeTool
             Dim e As New IndexEntry()
             e.FilePath = rl.Path
             e.FileName = Path.GetFileName(rl.Path)
+            e.DisplayName = If(rl.Display IsNot Nothing AndAlso rl.Display.Trim().Length > 0, rl.Display.Trim(), e.FileName)
             e.PageCount = pc
             e.StartPageInFinal = 0
             e.IndentLevel = rl.IndentLevel
@@ -247,11 +285,8 @@ Module PdfMergeTool
 
     ' ============================================================
     ' SORT CHILDREN ALPHABETICALLY WITHIN EACH PARENT
-    ' - Root order preserved
-    ' - Only children lists are sorted (recursive)
     ' ============================================================
     Private Function SortChildrenAlphabeticallyWithinParents(ByVal entries As List(Of IndexEntry)) As List(Of IndexEntry)
-        ' Build forest from indent levels
         Dim roots As New List(Of Node)()
         Dim stack As New List(Of Node)()
 
@@ -260,8 +295,6 @@ Module PdfMergeTool
 
             Dim d As Integer = e.IndentLevel
             If d < 0 Then d = 0
-
-            ' Clamp crazy jumps: 0 -> 5 becomes 0 -> 1
             If i > 0 Then
                 Dim prevD As Integer = entries(i - 1).IndentLevel
                 If d > prevD + 1 Then d = prevD + 1
@@ -284,12 +317,10 @@ Module PdfMergeTool
             stack.Add(n)
         Next
 
-        ' Sort children within each parent node (recursive)
         For Each r As Node In roots
             SortChildrenRecursive(r)
         Next
 
-        ' Flatten back preserving root order
         Dim flat As New List(Of IndexEntry)()
         For Each r As Node In roots
             Flatten(r, flat)
@@ -319,7 +350,7 @@ Module PdfMergeTool
     End Sub
 
     ' ============================================================
-    ' Hierarchical numbering builder: 1., 1.1., 1.1.1.
+    ' Hierarchical numbering
     ' ============================================================
     Private Sub AssignHierarchicalNumbers(ByVal entries As List(Of IndexEntry))
         Dim counters As New List(Of Integer)()
@@ -340,7 +371,6 @@ Module PdfMergeTool
             End If
 
             counters(d) = counters(d) + 1
-
             entries(i).HierNo = BuildHierNo(counters)
 
             prevDepth = d
@@ -358,7 +388,7 @@ Module PdfMergeTool
     End Function
 
     ' ============================================================
-    ' Tree-prefix builder: │  ├─ / └─ (light & clean)
+    ' Tree prefix builder
     ' ============================================================
     Private Sub AssignTreePrefixes(ByVal entries As List(Of IndexEntry))
         Dim depthHasMore As New List(Of Boolean)()
@@ -379,13 +409,10 @@ Module PdfMergeTool
                 Dim nextD As Integer = entries(i + 1).IndentLevel
                 If nextD = d Then
                     isLastSibling = False
-                ElseIf nextD > d Then
-                    isLastSibling = True ' has children, sibling status depends on next same-level, which isn't immediate
                 Else
                     isLastSibling = True
                 End If
 
-                ' To detect last sibling properly, scan forward until indent <= d
                 If d > 0 Then
                     Dim j As Integer = i + 1
                     Dim foundSame As Boolean = False
@@ -402,8 +429,6 @@ Module PdfMergeTool
                 End If
             End If
 
-            ' Update parent "has more siblings" flags:
-            ' If this node is not last at its level, its parent path should show vertical │
             If d > 0 Then
                 While depthHasMore.Count < d
                     depthHasMore.Add(False)
@@ -414,7 +439,6 @@ Module PdfMergeTool
             Dim prefix As String = ""
 
             If d > 0 Then
-                ' Ancestor guides
                 For level As Integer = 0 To d - 2
                     If level < depthHasMore.Count AndAlso depthHasMore(level) Then
                         prefix &= "│  "
@@ -423,7 +447,6 @@ Module PdfMergeTool
                     End If
                 Next
 
-                ' Current branch
                 If isLastSibling Then
                     prefix &= "└─ "
                 Else
@@ -457,7 +480,6 @@ Module PdfMergeTool
             Next
 
             StampPageNumbers(outDoc)
-
             outDoc.Save(outputFile)
         End Using
     End Sub
@@ -497,9 +519,8 @@ Module PdfMergeTool
 
                 Dim y As Double = topMargin
 
-                ' Column headers
                 gfx.DrawString("No.", headerFont, XBrushes.Black, New XRect(leftMargin, y, COL_NO_WIDTH, lineH), XStringFormats.TopLeft)
-                gfx.DrawString("Drawing PDF", headerFont, XBrushes.Black, New XRect(COL_DRAWING_X, y, pageW - 235, lineH), XStringFormats.TopLeft)
+                gfx.DrawString("Drawing", headerFont, XBrushes.Black, New XRect(COL_DRAWING_X, y, pageW - 235, lineH), XStringFormats.TopLeft)
                 gfx.DrawString("Start Pg", headerFont, XBrushes.Black, New XRect(pageW - 140, y, 80, lineH), XStringFormats.TopLeft)
                 gfx.DrawString("Pages", headerFont, XBrushes.Black, New XRect(pageW - 70, y, 60, lineH), XStringFormats.TopLeft)
 
@@ -509,24 +530,21 @@ Module PdfMergeTool
                 While entryIndex < entries.Count AndAlso lineOnPage < linesPerPage
                     Dim e As IndexEntry = entries(entryIndex)
 
-                    ' Indent the "No." column too (so 1.1 is NOT inline with 1.)
                     Dim noIndent As Double = (e.IndentLevel * INDEX_INDENT_STEP)
                     Dim noX As Double = leftMargin + noIndent
-
                     gfx.DrawString(e.HierNo, rowFont, XBrushes.Black, New XRect(noX, y, COL_NO_WIDTH - noIndent - COL_NO_PAD, lineH), XStringFormats.TopLeft)
 
-                    ' Drawing column: Tree prefix + filename (keeps clean look)
-                    Dim indentX As Double = (e.IndentLevel * INDEX_INDENT_STEP)
-                    Dim fileX As Double = COL_DRAWING_X + indentX
-                    Dim fileW As Double = (pageW - 235.0) - indentX
-                    If fileW < 50.0 Then fileW = 50.0
+                    ' NEW: use DisplayName (from 2nd column), not file name
+                    Dim dn As String = e.DisplayName
+                    If dn Is Nothing Then dn = ""
+                    dn = dn.Trim()
+                    If dn.Length = 0 Then dn = e.FileName
 
-                    Dim fn As String = e.FileName
-                    If fn.Length > 90 Then fn = fn.Substring(0, 87) & "..."
+                    If dn.Length > 110 Then dn = dn.Substring(0, 107) & "..."
 
-                    Dim displayName As String = e.TreePrefix & fn
+                    Dim displayLine As String = e.TreePrefix & dn
+                    gfx.DrawString(displayLine, rowFont, XBrushes.Black, New XRect(COL_DRAWING_X, y, pageW - 235, lineH), XStringFormats.TopLeft)
 
-                    gfx.DrawString(displayName, rowFont, XBrushes.Black, New XRect(COL_DRAWING_X, y, pageW - 235, lineH), XStringFormats.TopLeft)
                     gfx.DrawString(e.StartPageInFinal.ToString(), rowFont, XBrushes.Black, New XRect(pageW - 140, y, 80, lineH), XStringFormats.TopLeft)
                     gfx.DrawString(e.PageCount.ToString(), rowFont, XBrushes.Black, New XRect(pageW - 70, y, 60, lineH), XStringFormats.TopLeft)
 
@@ -560,6 +578,7 @@ Module PdfMergeTool
         Console.WriteLine("PdfMergeTool (VB.NET 4.0 + PDFsharp-gdi)")
         Console.WriteLine("Usage:")
         Console.WriteLine("  PdfMergeTool.exe -out ""C:\out\Combined.pdf"" -list ""C:\out\merge_order.txt""")
+        Console.WriteLine("  PdfMergeTool.exe -out ""C:\out\Combined.pdf"" -list ""C:\out\merge_order_with_desc.txt""")
     End Sub
 
 End Module
