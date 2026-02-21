@@ -208,6 +208,7 @@ Public Class ConveyorCalculatorForm
         pnlResults.Location = New Point(390, 10)
         pnlResults.Size = New Size(770, 660)
         pnlResults.BackColor = themeBG
+        pnlResults.AutoScroll = True
         pnlResults.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         Me.Controls.Add(pnlResults)
 

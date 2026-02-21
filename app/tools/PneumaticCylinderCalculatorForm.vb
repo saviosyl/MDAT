@@ -324,6 +324,7 @@ Public Class PneumaticCylinderCalculatorForm
         pnlResults = New Panel()
         pnlResults.Dock = DockStyle.Fill
         pnlResults.BackColor = themeBG
+        pnlResults.AutoScroll = True
         split.Panel2.Controls.Add(pnlResults)
 
         lblStatus = New Label()

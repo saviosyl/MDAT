@@ -1590,6 +1590,19 @@ Public Class MainForm
             Return
         End If
 
+        ' ---- LICENSE / SEAT CHECK (same as design tools) ----
+        If Not licenseValid Then
+            LogA("⛔", "License invalid or expired. Please activate a valid license.")
+            MessageBox.Show("License invalid or expired. Please activate or renew your license to use engineering tools.", "MDAT License", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        If Not TierLocks.CanRunEngineeringTool(slot, currentTier) Then
+            LogA("⛔", "This engineering tool is locked for your license tier. Please upgrade.")
+            MessageBox.Show("This tool is locked for your license tier. Please upgrade to access it.", "MDAT License", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+
         Dim frm As Form = Nothing
         Dim toolName As String = ""
 
@@ -1714,6 +1727,7 @@ Public Class MainForm
         End If
 
         If lic.ExpiryUtc <= DateTime.UtcNow Then
+            licenseValid = False
             lblValidity.Text = tierName & " | " & seatsShort & " | ⛔ EXPIRED"
             lblValidity.ForeColor = Color.Red
             Return

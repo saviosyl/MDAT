@@ -109,9 +109,9 @@ Public Class AirConsumptionForm
     ' UI
     ' =========================================================
     Private Sub BuildUI()
-        pnlTop = New Panel() With {.Dock = DockStyle.Top, .Height = 150, .Padding = New Padding(10)}
+        pnlTop = New Panel() With {.Dock = DockStyle.Top, .Height = 150, .Padding = New Padding(10), .AutoScroll = True}
         pnlGrid = New Panel() With {.Dock = DockStyle.Fill, .Padding = New Padding(10)}
-        pnlRight = New Panel() With {.Dock = DockStyle.Right, .Width = 360, .Padding = New Padding(10)}
+        pnlRight = New Panel() With {.Dock = DockStyle.Right, .Width = 360, .Padding = New Padding(10), .AutoScroll = True}
         pnlBottom = New Panel() With {.Dock = DockStyle.Bottom, .Height = 48, .Padding = New Padding(10)}
 
         Me.Controls.Add(pnlGrid)
