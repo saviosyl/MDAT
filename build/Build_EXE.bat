@@ -185,24 +185,6 @@ if not exist "%APP_DIR%\TelemetryService.vb" (
 echo [OK] Telemetry files found
 echo.
 
-REM ------------------------------------------------------------
-REM GENERATE EXE ICON FROM LOGO PNG
-REM ------------------------------------------------------------
-echo ============================================================
-echo [STEP] Generating EXE icon from logo
-echo ============================================================
-set "ICO_PATH=%OUTPUT_DIR%\assets\logo\app.ico"
-set "ICO_FLAG="
-powershell -NoProfile -Command "try { Add-Type -AssemblyName System.Drawing; $png = '%OUTPUT_DIR%\assets\logo\logo.png'; $out = '%ICO_PATH%'; $bmp = New-Object System.Drawing.Bitmap($png); $sizes = @(16, 32, 48, 64, 256); $entries = @(); foreach ($sz in $sizes) { $thumb = New-Object System.Drawing.Bitmap($bmp, $sz, $sz); $ms = New-Object System.IO.MemoryStream; $thumb.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png); $entries += ,@($sz, $ms.ToArray()); $ms.Dispose(); $thumb.Dispose() }; $bmp.Dispose(); $count = $entries.Count; $headerSz = 6 + ($count * 16); $offset = $headerSz; $fs = [System.IO.File]::Create($out); $w = New-Object System.IO.BinaryWriter($fs); $w.Write([UInt16]0); $w.Write([UInt16]1); $w.Write([UInt16]$count); foreach ($e in $entries) { $s = $e[0]; $d = $e[1]; $ws = if($s -ge 256){0}else{$s}; $w.Write([byte]$ws); $w.Write([byte]$ws); $w.Write([byte]0); $w.Write([byte]0); $w.Write([UInt16]1); $w.Write([UInt16]32); $w.Write([UInt32]$d.Length); $w.Write([UInt32]$offset); $offset += $d.Length }; foreach ($e in $entries) { $w.Write($e[1]) }; $w.Close(); $fs.Close(); Write-Host '[OK] Icon generated (multi-size: 16,32,48,64,256)' } catch { Write-Host '[SKIP] Icon generation failed:' $_.Exception.Message }" 2>nul
-if exist "%ICO_PATH%" (
-  set "ICO_FLAG=/win32icon:"%ICO_PATH%""
-  echo [OK] Will embed icon: %ICO_PATH%
-) else (
-  echo [SKIP] No icon file — EXE will use default icon
-  echo To add EXE icon: convert logo.png to app.ico (256x256, 48x48, 32x32, 16x16)
-)
-echo.
-
 REM ============================================================
 REM BUILD MAIN APPLICATION
 REM ============================================================
@@ -226,10 +208,8 @@ echo.
  /reference:"System.Windows.Forms.dll" ^
  /reference:"System.Security.dll" ^
  /out:"%OUT_EXE%" ^
- %ICO_FLAG% ^
  "%APP_DIR%\Program.vb" ^
  "%APP_DIR%\MainForm.vb" ^
- "%APP_DIR%\SplashForm.vb" ^
  "%APP_DIR%\SeatEnforcer.vb" ^
  "%APP_DIR%\SeatServerClient.vb" ^
  "%APP_DIR%\SeatCache.vb" ^
@@ -241,7 +221,6 @@ echo.
  "%APP_DIR%\AboutForm.vb" ^
  "%APP_DIR%\UITheme.vb" ^
  "%TOOLS_DIR%\ThemeApplier.vb" ^
- "%TOOLS_DIR%\UISettings.vb" ^
  "%TOOLS_DIR%\AdminLoginForm.vb" ^
  "%TOOLS_DIR%\AdminMacroEditorForm.vb" ^
  "%TOOLS_DIR%\ConveyorCalculatorForm.vb" ^
@@ -265,8 +244,6 @@ echo.
  "%TOOLS_DIR%\TorqueCalculatorForm.vb" ^
  "%TOOLS_DIR%\UnitConverterForm.vb" ^
  "%TOOLS_DIR%\UnitSystem.vb" ^
- "%TOOLS_DIR%\FormHeader.vb" ^
- "%TOOLS_DIR%\FormFooter.vb" ^
  1>"%LOG_MDAT%" 2>&1
 
 if errorlevel 1 goto :MDAT_FAIL
