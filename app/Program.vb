@@ -16,25 +16,11 @@ Module Program
         Application.SetCompatibleTextRenderingDefault(False)
 
         ' Load config (for server URL and client token)
-        Try
-            LoadConfig()
-        Catch ex As Exception
-            MessageBox.Show("Config load error: " & ex.Message, "DEBUG", MessageBoxButtons.OK, MessageBoxIcon.[Error])
-        End Try
+        LoadConfig()
 
         ' If no license.key exists, try to activate a trial automatically
         Dim licPath As String = Path.Combine(Application.StartupPath, LICENSE_FILE)
-        Dim licExists As Boolean = File.Exists(licPath)
-
-        MessageBox.Show( _
-            "DEBUG:" & vbCrLf & _
-            "Server: " & SeatServerClient.ServerBaseUrl & vbCrLf & _
-            "Token set: " & (SeatServerClient.ClientToken.Length > 0).ToString() & vbCrLf & _
-            "License path: " & licPath & vbCrLf & _
-            "License exists: " & licExists.ToString(), _
-            "DEBUG", MessageBoxButtons.OK, MessageBoxIcon.Information)
-
-        If Not licExists Then
+        If Not File.Exists(licPath) Then
             TryActivateTrial(licPath)
         End If
 
@@ -86,25 +72,17 @@ Module Program
                         MessageBoxIcon.Warning)
                 Else
                     MessageBox.Show(
-                        "Trial activation failed." & vbCrLf & _
-                        "Code: " & code & vbCrLf & _
-                        "Message: " & msg & vbCrLf & _
-                        "Raw: " & If(result.RawJson, "").Substring(0, Math.Min(If(result.RawJson, "").Length, 300)),
-                        "MetaMech - Debug",
+                        "Could not activate trial." & vbCrLf & vbCrLf &
+                        "Please purchase a license at:" & vbCrLf &
+                        "https://metamechsolutions.com/pricing",
+                        "MetaMech",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning)
+                        MessageBoxIcon.Information)
                 End If
             End If
 
-        Catch ex As Exception
-            MessageBox.Show(
-                "Trial activation error:" & vbCrLf & vbCrLf &
-                ex.ToString() & vbCrLf & vbCrLf &
-                "Server: " & SeatServerClient.ServerBaseUrl & vbCrLf &
-                "Token set: " & (SeatServerClient.ClientToken.Length > 0).ToString(),
-                "MetaMech - Debug",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning)
+        Catch
+            ' Network error — don't block startup, user can still use a purchased license
         End Try
     End Sub
 
