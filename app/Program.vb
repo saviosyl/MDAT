@@ -85,15 +85,14 @@ Module Program
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning)
                 Else
-                    ' Some other error — let them know but don't block startup
-                    If msg.Length > 0 Then
-                        MessageBox.Show(
-                            "Could not activate trial: " & msg & vbCrLf & vbCrLf &
-                            "You can still use MetaMech with a purchased license.",
-                            "MetaMech",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information)
-                    End If
+                    MessageBox.Show(
+                        "Trial activation failed." & vbCrLf & _
+                        "Code: " & code & vbCrLf & _
+                        "Message: " & msg & vbCrLf & _
+                        "Raw: " & If(result.RawJson, "").Substring(0, Math.Min(If(result.RawJson, "").Length, 300)),
+                        "MetaMech - Debug",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning)
                 End If
             End If
 
