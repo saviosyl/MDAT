@@ -81,6 +81,9 @@ if exist "%OUTPUT%\assets\themes\*.theme" copy /y "%OUTPUT%\assets\themes\*.them
 REM UI settings defaults
 if exist "%OUTPUT%\ui.ini" copy /y "%OUTPUT%\ui.ini" "%STAGING%\" >nul
 
+REM User Manual (PDF)
+if exist "docs\MetaMech_User_Manual.pdf" copy /y "docs\MetaMech_User_Manual.pdf" "%STAGING%\" >nul
+
 echo [OK] Files copied
 echo.
 
@@ -180,6 +183,7 @@ echo     - PdfMergeTool.exe (PDF merge tool)
 echo     - PdfSharp-gdi.dll (PDF library)
 echo     - Config.txt (server config)
 echo     - MetaMech_RSA_PUBLIC.xml (license verification)
+echo     - MetaMech_User_Manual.pdf (user guide)
 echo     - assets\ (icons, themes, logo)
 echo.
 echo   NOT included (safe):
