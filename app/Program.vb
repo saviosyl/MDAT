@@ -15,8 +15,12 @@ Module Program
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
 
+        MessageBox.Show("DEBUG: Program.vb running. About to load config.", "DEBUG", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
         ' Load config (for server URL and client token)
         LoadConfig()
+
+        MessageBox.Show("DEBUG: Config loaded." & vbCrLf & "Server: " & SeatServerClient.ServerBaseUrl & vbCrLf & "Token: " & If(SeatServerClient.ClientToken.Length > 0, "SET (" & SeatServerClient.ClientToken.Length.ToString() & " chars)", "EMPTY"), "DEBUG", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
         ' If no license.key exists, try to activate a trial automatically
         Dim licPath As String = Path.Combine(Application.StartupPath, LICENSE_FILE)
