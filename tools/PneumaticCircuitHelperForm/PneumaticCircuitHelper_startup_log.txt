@@ -1,0 +1,6 @@
+=== PneumaticCircuitHelper Startup Log ===
+Time: 2026-02-25 12:53:41
+BaseDir: C:\Users\savio.sylyester\Desktop\Dev2\MDAT\tools\ADVANCE\PneumaticCircuitHelperForm\
+Creating form...
+Running form...
+Application closed normally.
