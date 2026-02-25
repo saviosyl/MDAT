@@ -244,6 +244,9 @@ echo.
  "%TOOLS_DIR%\TorqueCalculatorForm.vb" ^
  "%TOOLS_DIR%\UnitConverterForm.vb" ^
  "%TOOLS_DIR%\UnitSystem.vb" ^
+ "%TOOLS_DIR%\UISettings.vb" ^
+ "%TOOLS_DIR%\FormHeader.vb" ^
+ "%APP_DIR%\SplashForm.vb" ^
  1>"%LOG_MDAT%" 2>&1
 
 if errorlevel 1 goto :MDAT_FAIL
