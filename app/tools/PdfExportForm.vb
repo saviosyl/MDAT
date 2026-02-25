@@ -42,7 +42,7 @@ Public Class PdfExportForm
         lstFiles.ForeColor = Color.White
         lstFiles.Font = New Font("Consolas", 9)
         lstFiles.HorizontalScrollbar = True
-        lstFiles.SelectionMode = SelectionMode.ExtendedSimple
+        lstFiles.SelectionMode = SelectionMode.MultiExtended
         lstFiles.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         Me.Controls.Add(lstFiles)
 
