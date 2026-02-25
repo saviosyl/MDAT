@@ -202,6 +202,7 @@ echo.
  /optionstrict+ ^
  /optionexplicit+ ^
  /main:Program ^
+ /win32icon:"output\assets\logo\app.ico" ^
  /reference:"System.dll" ^
  /reference:"System.Core.dll" ^
  /reference:"System.Drawing.dll" ^
