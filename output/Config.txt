@@ -10,6 +10,9 @@ MACRO_TOKEN=b7f8a1d0c3e24f6a91b8d4c0a9e2f7d3c1b0a8f2e3d4c5b6a7f8e9d0c1b2a3f4
 [Macros]
 1=SMART BOM.swp|module1|main
 2=SMART PDF.swp|module1|main
-3=SMART STEP.swp|module1|main
-4=SMART DXF.swp|module1|main
-5-MDAT_ONECLICK.swp|module1|main
+3=SMART STEP.swp|BOTH_1|Main
+4=SMART DXF.swp|Macro11|Main
+5=SMART TEMPLETE CHANGE.swp|TEMP_CHANGE1|main
+6=MDAT_ONECLICK.swp|EntryPoint|Main
+
+
