@@ -84,8 +84,14 @@ Module Program
             End If
 
         Catch ex As Exception
-            ' Network error or other issue — don't block startup
-            ' User can still place a license.key manually
+            MessageBox.Show(
+                "Trial activation error:" & vbCrLf & vbCrLf &
+                ex.ToString() & vbCrLf & vbCrLf &
+                "Server: " & SeatServerClient.ServerBaseUrl & vbCrLf &
+                "Token set: " & (SeatServerClient.ClientToken.Length > 0).ToString(),
+                "MetaMech - Debug",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning)
         End Try
     End Sub
 
