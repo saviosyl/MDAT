@@ -71,9 +71,12 @@ No license key needed — it's automatic.
 
 ### Step 4: Connect SolidWorks
 
-1. Open SolidWorks and load an assembly
-2. In MetaMech, click **"Open Assembly"** or the assembly will be detected automatically
-3. You're ready to use the Design Tools
+1. Open SolidWorks
+2. In MetaMech, **select your SolidWorks version** from the dropdown (e.g., 2022)
+3. Click **"Select Assembly (.SLDASM)"** to choose your assembly file
+4. Now you can use the Design Tools
+
+> **Important:** You must select the SolidWorks version and assembly BEFORE clicking any Design Tool button.
 
 ---
 
@@ -184,7 +187,15 @@ Shows the currently loaded SolidWorks assembly.
 
 ## 5. Design Tools (SolidWorks Automation)
 
-These tools automate SolidWorks tasks. **SolidWorks must be running with an assembly open.**
+These tools automate SolidWorks tasks.
+
+**Before using any Design Tool:**
+1. Open SolidWorks on your PC
+2. In MetaMech, select your **SolidWorks version** from the dropdown
+3. Click **"Select Assembly (.SLDASM)"** to load your assembly
+4. Then click the tool button
+
+> **Important:** Always select version and assembly first. Clicking a tool button without an assembly loaded will fail.
 
 ### SMART BOM
 **Generate Bill of Materials from any assembly.**
