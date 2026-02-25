@@ -107,7 +107,7 @@ Module Program
                 Dim val As String = t.Substring(eq + 1).Trim()
 
                 Select Case key
-                    Case "SERVER_URL", "SEAT_SERVER_URL"
+                    Case "SERVER_URL", "SEAT_SERVER_URL", "SEAT_SERVER"
                         If val.Length > 0 Then SeatServerClient.ServerBaseUrl = val
                     Case "CLIENT_TOKEN"
                         If val.Length > 0 Then SeatServerClient.ClientToken = val
