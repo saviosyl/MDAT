@@ -190,6 +190,37 @@ Public NotInheritable Class SeatServerClient
         Return s.Replace("\", "\\").Replace("""", "\""").Replace(vbCrLf, "\n").Replace(vbLf, "\n")
     End Function
 
+    ' ============================================================
+    '  TRIAL ACTIVATE — request a new trial from the server
+    ' ============================================================
+    Public Shared Function TrialActivate(ByVal machineId As String,
+                                         ByVal machineName As String,
+                                         ByVal userName As String) As TrialActivateResult
+
+        Dim url As String = CombineUrl(ServerBaseUrl, "/trial-activate")
+
+        Dim body As String = _
+            "{" & _
+            """machineId"":""" & JsonEsc(machineId) & """," & _
+            """machineName"":""" & JsonEsc(machineName) & """," & _
+            """userName"":""" & JsonEsc(userName) & """" & _
+            "}"
+
+        Dim json As String = PostJson(url, body)
+        Return ParseTrialResult(json)
+    End Function
+
+    Private Shared Function ParseTrialResult(ByVal json As String) As TrialActivateResult
+        Dim r As New TrialActivateResult()
+        r.RawJson = If(json, "")
+        r.Ok = GetJsonBool(json, "ok")
+        r.Code = GetJsonString(json, "code")
+        r.License = GetJsonString(json, "license")
+        r.LicenseId = GetJsonString(json, "licenseId")
+        r.Message = GetJsonString(json, "message")
+        Return r
+    End Function
+
     Private Shared Function CombineUrl(ByVal baseUrl As String, ByVal path As String) As String
         If baseUrl Is Nothing Then baseUrl = ""
         If path Is Nothing Then path = ""
@@ -198,6 +229,24 @@ Public NotInheritable Class SeatServerClient
         Return baseUrl & path
     End Function
 
+End Class
+
+Public Class TrialActivateResult
+    Public Ok As Boolean
+    Public Code As String
+    Public License As String
+    Public LicenseId As String
+    Public Message As String
+    Public RawJson As String
+
+    Public Sub New()
+        Ok = False
+        Code = ""
+        License = ""
+        LicenseId = ""
+        Message = ""
+        RawJson = ""
+    End Sub
 End Class
 
 Public Class SeatServerResult
